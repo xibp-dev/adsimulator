@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("USER")
+  status       String    @default("ACTIVE")
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+  adAccount    AdAccount?
+}
+
+model AdAccount {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  name      String
+  currency  String     @default("IDR")
+  balance   Float      @default(0)
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id                  String   @id @default(cuid())
+  adAccountId         String
+  name                String
+  objective           String   @default("AWARENESS")
+  buyingType          String   @default("AUCTION")
+  status              String   @default("DRAFT")
+  specialAdCategories String   @default("[]")
+  cboEnabled          Boolean  @default(false)
+  budgetType          String   @default("DAILY")
+  budgetAmount        Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  adAccount           AdAccount @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  adSets              AdSet[]
+}
+
+model AdSet {
+  id                    String    @id @default(cuid())
+  campaignId            String
+  name                  String
+  performanceGoal       String    @default("MAXIMIZE_LINK_CLICKS")
+  conversionLocation    String    @default("WEBSITE")
+  pixel                 String?
+  budgetType            String    @default("DAILY")
+  budgetAmount          Float     @default(0)
+  scheduleStart         DateTime  @default(now())
+  scheduleEnd           DateTime?
+  advantageAudienceOn   Boolean   @default(true)
+  locations             String    @default("[]")
+  ageMin                Int       @default(18)
+  ageMax                Int       @default(65)
+  genders               String    @default("[]")
+  detailedTargeting     String    @default("[]")
+  languages             String    @default("[]")
+  advantagePlacementsOn Boolean   @default(true)
+  manualPlacements      String    @default("[]")
+  status                String    @default("DRAFT")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  campaign              Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  ads                   Ad[]
+}
+
+model Ad {
+  id                String   @id @default(cuid())
+  adSetId           String
+  name              String
+  identityPage      String   @default("")
+  identityInstagram String   @default("")
+  format            String   @default("SINGLE_IMAGE_VIDEO")
+  primaryText       String   @default("")
+  headline          String   @default("")
+  description       String   @default("")
+  mediaUrls         String   @default("[]")
+  cta               String   @default("LEARN_MORE")
+  destinationUrl    String   @default("")
+  status            String   @default("DRAFT")
+  rejectionReason   String?
+  qualityScore      Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  adSet             AdSet    @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+}
+
+model SimMetrics {
+  id            String   @id @default(cuid())
+  entityType    String
+  entityId      String
+  reach         Int      @default(0)
+  impressions   Int      @default(0)
+  results       Int      @default(0)
+  costPerResult Float    @default(0)
+  amountSpent   Float    @default(0)
+  ctr           Float    @default(0)
+  cpm           Float    @default(0)
+  frequency     Float    @default(0)
+  date          DateTime @default(now())
+}
+
+model BusinessPortfolio {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  businessEmail String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Fanspage {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  category  String
+  bio       String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Pixel {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  websiteUrl String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SiteSettings {
+  id          String   @id @default("singleton")
+  siteUrl     String   @default("https://adsimulator.web.id")
+  siteName    String   @default("MetaLabs")
+  title       String   @default("MetaLabs — Simulator Iklan Facebook & Instagram Gratis")
+  description String   @default("MetaLabs adalah simulator Meta Ads Manager berbahasa Indonesia. Belajar iklan Facebook dan Instagram secara gratis tanpa budget nyata.")
+  keywords    String   @default("simulator iklan,simulator iklan facebook,simulator meta ads,belajar iklan facebook,belajar meta ads,belajar iklan instagram,cara buat iklan facebook,latihan meta ads manager,praktek iklan digital,kursus iklan facebook gratis,simulator ads manager,belajar digital marketing,cara pasang iklan facebook,iklan instagram tutorial,meta business suite simulator,belajar facebook ads pemula,simulasi kampanye iklan,tools belajar iklan,latihan iklan tanpa modal,edukasi iklan digital")
+  ogImageUrl  String   @default("/og-image.png")
+  updatedAt   DateTime @updatedAt
+}
+
+model Preset {
+  id        String   @id @default(cuid())
+  type      String   // "AUDIENCE" | "FANSPAGE" | "PIXEL"
+  name      String
+  data      String   // JSON string containing configuration details
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
