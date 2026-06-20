@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Plus, Copy, Edit2, Trash2, Download, Columns,
-  ChevronDown, MoreHorizontal, TrendingUp, Eye, X,
-  ImageIcon, PlayCircle
+  ChevronDown, TrendingUp, Eye, X,
+  ImageIcon, Loader2, Save
 } from "lucide-react";
 import { CampaignObjective, CampaignStatus } from "@/types";
 import { formatCurrency, formatNumber } from "@/lib/simulate";
@@ -30,7 +30,6 @@ interface Campaign {
     costPerResult: number;
     amountSpent: number;
     ctr: number;
-    cpm: number;
     date: Date;
   }>;
 }
@@ -56,6 +55,7 @@ interface Ad {
   format: string;
   primaryText: string;
   headline: string;
+  description: string;
   identityPage: string;
   mediaUrls: string[];
   cta: string;
@@ -84,10 +84,8 @@ function AdPreviewModal({ ad, onClose }: { ad: Ad; onClose: () => void }) {
           </button>
         </div>
 
-        {/* Mock FB Feed preview */}
         <div className="bg-white p-4">
           <div className="border border-gray-200 rounded-xl overflow-hidden">
-            {/* Header */}
             <div className="flex items-center gap-2.5 px-3 py-2.5">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                 {(ad.identityPage || "H").charAt(0).toUpperCase()}
@@ -97,11 +95,9 @@ function AdPreviewModal({ ad, onClose }: { ad: Ad; onClose: () => void }) {
                 <p className="text-[10px] text-gray-400">Bersponsor · 🌐</p>
               </div>
             </div>
-            {/* Text */}
             {ad.primaryText && (
               <p className="px-3 pb-2 text-[13px] text-gray-800 leading-relaxed">{ad.primaryText.slice(0, 100)}{ad.primaryText.length > 100 ? "…" : ""}</p>
             )}
-            {/* Media */}
             <div className="w-full bg-gray-100 aspect-[1.91/1] overflow-hidden relative">
               {ytId ? (
                 <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allowFullScreen />
@@ -115,7 +111,6 @@ function AdPreviewModal({ ad, onClose }: { ad: Ad; onClose: () => void }) {
               )}
               <span className="absolute top-2 left-2 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">IKLAN</span>
             </div>
-            {/* CTA */}
             {ad.headline && (
               <div className="flex items-center justify-between px-3 py-2.5 bg-[#f0f2f5]">
                 <div>
@@ -138,13 +133,388 @@ function AdPreviewModal({ ad, onClose }: { ad: Ad; onClose: () => void }) {
   );
 }
 
-export default function CampaignTable({ campaigns }: Props) {
+/* ── Delete Confirm Modal ── */
+function DeleteConfirmModal({
+  name,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  name: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onCancel}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-semibold text-[#1c2b33] text-base mb-2">Hapus item?</h2>
+        <p className="text-sm text-gray-600 mb-5">
+          Yakin hapus <span className="font-semibold text-[#1c2b33]">{name}</span>? Tindakan ini tidak bisa dibatalkan.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33] disabled:opacity-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold disabled:opacity-50"
+          >
+            {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Edit Campaign Modal ── */
+function EditCampaignModal({
+  campaign,
+  onSave,
+  onClose,
+}: {
+  campaign: Campaign;
+  onSave: (updated: Campaign) => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(campaign.name);
+  const [budgetType, setBudgetType] = useState(campaign.budgetType);
+  const [budgetAmount, setBudgetAmount] = useState(String(campaign.budgetAmount));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/campaigns/${campaign.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, budgetType, budgetAmount: parseFloat(budgetAmount) || 0 }),
+      });
+      if (!res.ok) throw new Error("Gagal menyimpan");
+      const data = await res.json();
+      onSave({ ...campaign, ...data });
+    } catch {
+      setError("Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2]">
+          <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Kampanye</h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Kampanye</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Jenis Anggaran</label>
+            <select
+              value={budgetType}
+              onChange={(e) => setBudgetType(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            >
+              <option value="DAILY">Harian</option>
+              <option value="LIFETIME">Seumur Hidup</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Jumlah Anggaran (Rp)</label>
+            <input
+              type="number"
+              min={0}
+              value={budgetAmount}
+              onChange={(e) => setBudgetAmount(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            />
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="flex gap-3 justify-end pt-1">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33]">Batal</button>
+            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white rounded-lg font-semibold disabled:opacity-50">
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Edit AdSet Modal ── */
+function EditAdSetModal({
+  adSet,
+  onSave,
+  onClose,
+}: {
+  adSet: AdSet;
+  onSave: (updated: AdSet) => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(adSet.name);
+  const [budgetType, setBudgetType] = useState(adSet.budgetType);
+  const [budgetAmount, setBudgetAmount] = useState(String(adSet.budgetAmount));
+  const [scheduleStart, setScheduleStart] = useState(adSet.scheduleStart ? adSet.scheduleStart.slice(0, 10) : "");
+  const [scheduleEnd, setScheduleEnd] = useState(adSet.scheduleEnd ? adSet.scheduleEnd.slice(0, 10) : "");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/adsets/${adSet.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          budgetType,
+          budgetAmount: parseFloat(budgetAmount) || 0,
+          scheduleStart: scheduleStart || undefined,
+          scheduleEnd: scheduleEnd || null,
+        }),
+      });
+      if (!res.ok) throw new Error("Gagal menyimpan");
+      const data = await res.json();
+      onSave({ ...adSet, ...data });
+    } catch {
+      setError("Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2]">
+          <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Set Iklan</h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Set Iklan</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Jenis Anggaran</label>
+            <select
+              value={budgetType}
+              onChange={(e) => setBudgetType(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            >
+              <option value="DAILY">Harian</option>
+              <option value="LIFETIME">Seumur Hidup</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Jumlah Anggaran (Rp)</label>
+            <input
+              type="number"
+              min={0}
+              value={budgetAmount}
+              onChange={(e) => setBudgetAmount(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Mulai</label>
+            <input
+              type="date"
+              value={scheduleStart}
+              onChange={(e) => setScheduleStart(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Berakhir (opsional)</label>
+            <input
+              type="date"
+              value={scheduleEnd}
+              onChange={(e) => setScheduleEnd(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            />
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="flex gap-3 justify-end pt-1">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33]">Batal</button>
+            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white rounded-lg font-semibold disabled:opacity-50">
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Edit Ad Modal ── */
+const CTA_OPTIONS = ["LEARN_MORE", "SHOP_NOW", "SIGN_UP", "BOOK_NOW", "CONTACT_US", "DOWNLOAD", "GET_OFFER", "GET_QUOTE", "SUBSCRIBE", "WATCH_MORE"];
+
+function EditAdModal({
+  ad,
+  onSave,
+  onClose,
+}: {
+  ad: Ad;
+  onSave: (updated: Ad) => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(ad.name);
+  const [primaryText, setPrimaryText] = useState(ad.primaryText);
+  const [headline, setHeadline] = useState(ad.headline);
+  const [cta, setCta] = useState(ad.cta);
+  const [destinationUrl, setDestinationUrl] = useState(ad.destinationUrl);
+  const [mediaUrl, setMediaUrl] = useState(ad.mediaUrls[0] ?? "");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const mediaUrls = mediaUrl ? [mediaUrl] : [];
+      const res = await fetch(`/api/ads/${ad.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, primaryText, headline, cta, destinationUrl, mediaUrls }),
+      });
+      if (!res.ok) throw new Error("Gagal menyimpan");
+      const data = await res.json();
+      onSave({ ...ad, ...data });
+    } catch {
+      setError("Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2] sticky top-0 bg-white">
+          <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Iklan</h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Iklan</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Teks Utama</label>
+            <textarea
+              value={primaryText}
+              onChange={(e) => setPrimaryText(e.target.value)}
+              rows={3}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30 resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Judul</label>
+            <input
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">CTA</label>
+            <select
+              value={cta}
+              onChange={(e) => setCta(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+            >
+              {CTA_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c.replace(/_/g, " ")}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">URL Tujuan</label>
+            <input
+              value={destinationUrl}
+              onChange={(e) => setDestinationUrl(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">URL Gambar/Video</label>
+            <input
+              value={mediaUrl}
+              onChange={(e) => setMediaUrl(e.target.value)}
+              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
+              placeholder="https://..."
+            />
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="flex gap-3 justify-end pt-1">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33]">Batal</button>
+            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white rounded-lg font-semibold disabled:opacity-50">
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Component ── */
+export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<Tab>("campaigns");
   const [adSets, setAdSets] = useState<AdSet[]>([]);
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(false);
   const [previewAd, setPreviewAd] = useState<Ad | null>(null);
+
+  // Edit modals
+  const [editCampaign, setEditCampaign] = useState<Campaign | null>(null);
+  const [editAdSet, setEditAdSet] = useState<AdSet | null>(null);
+  const [editAd, setEditAd] = useState<Ad | null>(null);
+
+  // Delete modals
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type: Tab } | null>(null);
+  const [bulkDeletePending, setBulkDeletePending] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (activeTab === "adsets" && adSets.length === 0) {
@@ -190,6 +560,49 @@ export default function CampaignTable({ campaigns }: Props) {
     ads: ads.length,
   };
 
+  /* ── Delete handler ── */
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    const endpoint = deleteTarget.type === "campaigns"
+      ? `/api/campaigns/${deleteTarget.id}`
+      : deleteTarget.type === "adsets"
+      ? `/api/adsets/${deleteTarget.id}`
+      : `/api/ads/${deleteTarget.id}`;
+    try {
+      const res = await fetch(endpoint, { method: "DELETE" });
+      if (!res.ok) throw new Error("Gagal hapus");
+      if (deleteTarget.type === "campaigns") setCampaigns((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      if (deleteTarget.type === "adsets") setAdSets((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+      if (deleteTarget.type === "ads") setAds((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+      setSelected((prev) => { const next = new Set(prev); next.delete(deleteTarget.id); return next; });
+    } catch {
+      // silently ignore, modal stays open momentarily
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  /* ── Bulk delete handler ── */
+  const handleBulkDeleteConfirm = async () => {
+    setDeleteLoading(true);
+    const ids = Array.from(selected);
+    const endpointBase = activeTab === "campaigns" ? "/api/campaigns" : activeTab === "adsets" ? "/api/adsets" : "/api/ads";
+    try {
+      await Promise.all(ids.map((id) => fetch(`${endpointBase}/${id}`, { method: "DELETE" })));
+      if (activeTab === "campaigns") setCampaigns((prev) => prev.filter((c) => !ids.includes(c.id)));
+      if (activeTab === "adsets") setAdSets((prev) => prev.filter((a) => !ids.includes(a.id)));
+      if (activeTab === "ads") setAds((prev) => prev.filter((a) => !ids.includes(a.id)));
+      setSelected(new Set());
+    } finally {
+      setDeleteLoading(false);
+      setBulkDeletePending(false);
+    }
+  };
+
+  const currentBulkName = `${selected.size} item yang dipilih`;
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -234,7 +647,11 @@ export default function CampaignTable({ campaigns }: Props) {
         <button disabled={selected.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 disabled:opacity-40 text-[#1c2b33]">
           <Edit2 className="w-3.5 h-3.5" /> Edit
         </button>
-        <button disabled={selected.size === 0} className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 disabled:opacity-40 text-red-500">
+        <button
+          disabled={selected.size === 0}
+          onClick={() => setBulkDeletePending(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 disabled:opacity-40 text-red-500"
+        >
           <Trash2 className="w-3.5 h-3.5" /> Hapus
         </button>
         <div className="ml-auto flex items-center gap-2">
@@ -269,7 +686,7 @@ export default function CampaignTable({ campaigns }: Props) {
                 <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500">Tayangan</th>
                 <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500">Biaya/hasil</th>
                 <th className="px-3 py-3 text-right text-xs font-semibold text-gray-500">Dibelanjakan</th>
-                <th className="w-10 px-3 py-3" />
+                <th className="w-20 px-3 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -315,7 +732,22 @@ export default function CampaignTable({ campaigns }: Props) {
                       <td className="px-3 py-3 text-right text-[#1c2b33]">{metrics.costPerResult > 0 ? formatCurrency(metrics.costPerResult) : "—"}</td>
                       <td className="px-3 py-3 text-right font-medium text-[#1c2b33]">{formatCurrency(metrics.amountSpent)}</td>
                       <td className="px-3 py-3">
-                        <button className="p-1.5 rounded hover:bg-gray-100 text-gray-400"><MoreHorizontal className="w-4 h-4" /></button>
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            onClick={() => setEditCampaign(campaign)}
+                            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget({ id: campaign.id, name: campaign.name, type: "campaigns" })}
+                            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -350,12 +782,13 @@ export default function CampaignTable({ campaigns }: Props) {
                 <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500">Status</th>
                 <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500">Anggaran</th>
                 <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500">Mulai</th>
+                <th className="w-20 px-3 py-3" />
               </tr>
             </thead>
             <tbody>
               {adSets.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-16 text-gray-400 text-sm">Belum ada set iklan.</td>
+                  <td colSpan={8} className="text-center py-16 text-gray-400 text-sm">Belum ada set iklan.</td>
                 </tr>
               ) : (
                 adSets.map((a) => (
@@ -374,6 +807,24 @@ export default function CampaignTable({ campaigns }: Props) {
                       {formatCurrency(a.budgetAmount)}
                     </td>
                     <td className="px-3 py-3 text-xs text-gray-500">{a.scheduleStart ? new Date(a.scheduleStart).toLocaleDateString("id-ID") : "—"}</td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-1 justify-end">
+                        <button
+                          onClick={() => setEditAdSet(a)}
+                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget({ id: a.id, name: a.name, type: "adsets" })}
+                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -394,12 +845,13 @@ export default function CampaignTable({ campaigns }: Props) {
                 <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500">Format</th>
                 <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500">Teks Utama</th>
                 <th className="w-20 px-3 py-3 text-center text-xs font-semibold text-gray-500">Preview</th>
+                <th className="w-20 px-3 py-3" />
               </tr>
             </thead>
             <tbody>
               {ads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16 text-gray-400 text-sm">Belum ada iklan.</td>
+                  <td colSpan={9} className="text-center py-16 text-gray-400 text-sm">Belum ada iklan.</td>
                 </tr>
               ) : (
                 ads.map((ad) => (
@@ -430,6 +882,24 @@ export default function CampaignTable({ campaigns }: Props) {
                         <Eye className="w-3.5 h-3.5" /> Lihat
                       </button>
                     </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-1 justify-end">
+                        <button
+                          onClick={() => setEditAd(ad)}
+                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget({ id: ad.id, name: ad.name, type: "ads" })}
+                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -440,6 +910,58 @@ export default function CampaignTable({ campaigns }: Props) {
 
       {/* Ad Preview Modal */}
       {previewAd && <AdPreviewModal ad={previewAd} onClose={() => setPreviewAd(null)} />}
+
+      {/* Edit Modals */}
+      {editCampaign && (
+        <EditCampaignModal
+          campaign={editCampaign}
+          onSave={(updated) => {
+            setCampaigns((prev) => prev.map((c) => c.id === updated.id ? { ...c, ...updated } : c));
+            setEditCampaign(null);
+          }}
+          onClose={() => setEditCampaign(null)}
+        />
+      )}
+      {editAdSet && (
+        <EditAdSetModal
+          adSet={editAdSet}
+          onSave={(updated) => {
+            setAdSets((prev) => prev.map((a) => a.id === updated.id ? { ...a, ...updated } : a));
+            setEditAdSet(null);
+          }}
+          onClose={() => setEditAdSet(null)}
+        />
+      )}
+      {editAd && (
+        <EditAdModal
+          ad={editAd}
+          onSave={(updated) => {
+            setAds((prev) => prev.map((a) => a.id === updated.id ? { ...a, ...updated } : a));
+            setEditAd(null);
+          }}
+          onClose={() => setEditAd(null)}
+        />
+      )}
+
+      {/* Single Delete Confirm */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          name={deleteTarget.name}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+          loading={deleteLoading}
+        />
+      )}
+
+      {/* Bulk Delete Confirm */}
+      {bulkDeletePending && (
+        <DeleteConfirmModal
+          name={currentBulkName}
+          onConfirm={handleBulkDeleteConfirm}
+          onCancel={() => setBulkDeletePending(false)}
+          loading={deleteLoading}
+        />
+      )}
     </div>
   );
 }
