@@ -25,7 +25,8 @@ export async function GET() {
           )
         )
       `)
-      .order("createdAt", { ascending: false });
+      .order("createdAt", { ascending: false })
+      .limit(200);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

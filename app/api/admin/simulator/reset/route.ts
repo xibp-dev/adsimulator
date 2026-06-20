@@ -18,6 +18,6 @@ export async function POST() {
     return NextResponse.json({ success: true, message: "Seluruh data metrik simulasi telah dibersihkan." });
   } catch (error: any) {
     console.error("Reset Simulation Error:", error);
-    return NextResponse.json({ error: "Failed to reset simulation", details: error.message }, { status: 550 });
+    return NextResponse.json({ error: "Failed to reset simulation" }, { status: 500 });
   }
 }

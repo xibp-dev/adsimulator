@@ -37,8 +37,20 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${randomUUID()}.${fileExt}`;
+
+    const ALLOWED_EXTENSIONS: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/x-icon": "ico",
+      "image/vnd.microsoft.icon": "ico",
+      "image/svg+xml": "svg",
+    };
+    const safeExt = ALLOWED_EXTENSIONS[file.type];
+    if (!safeExt) {
+      return NextResponse.json({ error: "Tipe file tidak didukung" }, { status: 400 });
+    }
+    const fileName = `${randomUUID()}.${safeExt}`;
     const filePath = `settings/${fileName}`;
 
     // Pastikan bucket site-assets ada, buat jika belum ada
@@ -83,6 +95,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Upload Error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

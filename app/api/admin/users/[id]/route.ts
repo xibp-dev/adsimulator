@@ -14,9 +14,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const { name, email, role, balance } = await req.json();
 
+  const ALLOWED_ROLES = ["USER", "ADMIN"];
+  const safeRole = ALLOWED_ROLES.includes(role) ? role : undefined;
+
+  const updateData: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+  if (name !== undefined) updateData.name = name;
+  if (email !== undefined) updateData.email = email;
+  if (safeRole !== undefined) updateData.role = safeRole;
+
   const { data: user, error: userError } = await supabase
     .from("User")
-    .update({ name, email, role, updatedAt: new Date().toISOString() })
+    .update(updateData)
     .eq("id", id)
     .select()
     .single();
