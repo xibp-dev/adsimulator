@@ -29,7 +29,7 @@ const DEFAULTS: SiteSettings = {
 };
 
 // Cache lintas-request (1 jam) + dedupe per-request (React cache).
-// Settings jarang berubah; di-invalidate via revalidateTag saat admin menyimpan.
+// Settings jarang berubah; di-invalidate via updateTag saat admin menyimpan.
 const fetchSiteSettings = unstable_cache(
   async (): Promise<SiteSettings> => {
     try {

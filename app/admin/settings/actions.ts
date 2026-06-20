@@ -1,7 +1,7 @@
 "use server";
 
 import { updateSiteSettings, SITE_SETTINGS_TAG } from "@/lib/siteSettings";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 
 export async function saveSeoSettings(formData: FormData) {
   const values = {
@@ -15,7 +15,7 @@ export async function saveSeoSettings(formData: FormData) {
 
   const result = await updateSiteSettings(values);
   if (result.success) {
-    revalidateTag(SITE_SETTINGS_TAG);
+    updateTag(SITE_SETTINGS_TAG);
     revalidatePath("/", "layout");
   }
   return result;
