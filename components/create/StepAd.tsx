@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { CampaignFormData } from "./CreateCampaignFlow";
 import { MOCK_PAGES, MOCK_INSTAGRAM, CTA_OPTIONS, MOCK_INSTANT_FORMS } from "@/lib/mockData";
 import { CTA } from "@/types";
-import { ImagePlus, Loader2, Eye, Plus, Trash2, Youtube, Image as ImageIcon, Link2 } from "lucide-react";
+import { ImagePlus, Loader2, Eye, Plus, Trash2, PlayCircle, Image as ImageIcon, Link2 } from "lucide-react";
 import AdPreviewPanel from "./AdPreviewPanel";
 
 interface Props {
@@ -166,7 +166,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
               <div className="flex gap-2">
                 {[
                   { val: "image", icon: <ImageIcon className="w-3.5 h-3.5" />, label: "Gambar (URL)" },
-                  { val: "video", icon: <Youtube className="w-3.5 h-3.5" />, label: "Video YouTube" },
+                  { val: "video", icon: <PlayCircle className="w-3.5 h-3.5" />, label: "Video YouTube" },
                 ].map((t) => {
                   const isVideo = (data.mediaUrls?.[0] ?? "").startsWith("yt:");
                   const active = t.val === "video" ? isVideo : !isVideo;
@@ -216,7 +216,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
               {(data.mediaUrls?.[0] ?? "").startsWith("yt:") && (
                 <div className="space-y-2">
                   <div className="flex gap-2 items-center">
-                    <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <PlayCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                     <input
                       type="url"
                       value={(data.mediaUrls?.[0] ?? "").replace("yt:", "")}
