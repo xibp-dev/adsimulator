@@ -334,8 +334,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
           {publishing ? "Memublikasikan..." : "Publikasikan"}
         </button>
       </div>
-      </div>{/* end form scroll container */}
-    </div>{/* end left column */}
+      </div>{/* end left column */}
 
       {/* ── Preview (right) ── */}
       {showPreview && (
