@@ -12,12 +12,14 @@ export default function SettingsForm({ settings }: { settings: SiteSettings }) {
 
   const [logoUrl, setLogoUrl] = useState(settings.logoUrl ?? "");
   const [faviconUrl, setFaviconUrl] = useState(settings.faviconUrl ?? "");
+  const [ogImageUrl, setOgImageUrl] = useState(settings.ogImageUrl ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     formData.set("logoUrl", logoUrl);
     formData.set("faviconUrl", faviconUrl);
+    formData.set("ogImageUrl", ogImageUrl);
     startTransition(async () => {
       const result = await saveSeoSettings(formData);
       if (result.success) {
@@ -61,8 +63,16 @@ export default function SettingsForm({ settings }: { settings: SiteSettings }) {
         hint="Teks di bawah judul di Google. Optimal 120–160 karakter." maxLength={200} />
       <TextareaRow label="Keywords" name="keywords" defaultValue={settings.keywords}
         hint="Kata kunci dipisah koma. Minimal 10, maksimal 25 kata kunci." rows={4} />
-      <Row label="URL OG Image" name="ogImageUrl" defaultValue={settings.ogImageUrl}
-        hint="Path gambar preview saat link dibagikan (1200×630px). Simpan di /public/" />
+      {/* Upload OG Image */}
+      <UploadRow
+        label="OG Image (Gambar SEO)"
+        name="ogImageUrl"
+        value={ogImageUrl}
+        onChange={setOgImageUrl}
+        hint="Gambar yang muncul di Google & media sosial saat link dibagikan. Ukuran ideal: 1200×630px."
+        accept="image/jpeg,image/png,image/webp"
+        previewClass="max-h-20"
+      />
 
       <div className="flex items-center justify-between pt-2">
         {status === "success" && (
@@ -91,9 +101,9 @@ export default function SettingsForm({ settings }: { settings: SiteSettings }) {
 }
 
 function UploadRow({
-  label, name, value, onChange, hint,
+  label, name, value, onChange, hint, accept, previewClass,
 }: {
-  label: string; name: string; value: string; onChange: (v: string) => void; hint?: string;
+  label: string; name: string; value: string; onChange: (v: string) => void; hint?: string; accept?: string; previewClass?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -149,7 +159,7 @@ function UploadRow({
           <span>{uploading ? "Mengunggah..." : "Pilih File"}</span>
           <input
             type="file"
-            accept="image/*,.ico"
+            accept={accept ?? "image/*,.ico"}
             className="hidden"
             onChange={handleFileChange}
             disabled={uploading}
@@ -174,7 +184,7 @@ function UploadRow({
       {value && (
         <div className="mt-3 p-3 bg-gray-50 border border-gray-100 rounded-xl inline-block">
           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Preview</p>
-          <img src={value} alt="Preview" className="max-h-12 object-contain rounded border border-gray-200" />
+          <img src={value} alt="Preview" className={`object-contain rounded border border-gray-200 ${previewClass ?? "max-h-12"}`} />
         </div>
       )}
     </div>

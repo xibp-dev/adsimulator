@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { randomUUID } from "crypto";
 
 async function requireAdmin() {
@@ -41,8 +41,26 @@ export async function POST(req: NextRequest) {
     const fileName = `${randomUUID()}.${fileExt}`;
     const filePath = `settings/${fileName}`;
 
+    // Pastikan bucket site-assets ada, buat jika belum ada
+    const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
+    if (!listError) {
+      const bucketExists = buckets?.some((b) => b.name === "site-assets");
+      if (!bucketExists) {
+        const { error: createError } = await supabaseAdmin.storage.createBucket("site-assets", {
+          public: true,
+        });
+        if (createError) {
+          console.error("Gagal membuat bucket:", createError);
+          return NextResponse.json(
+            { error: `Gagal membuat storage bucket: ${createError.message}` },
+            { status: 500 }
+          );
+        }
+      }
+    }
+
     // Upload ke Supabase Storage (bucket: site-assets)
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseAdmin.storage
       .from("site-assets")
       .upload(filePath, buffer, {
         contentType: file.type,
@@ -55,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Dapatkan public URL
-    const { data: publicUrlData } = supabase.storage
+    const { data: publicUrlData } = supabaseAdmin.storage
       .from("site-assets")
       .getPublicUrl(filePath);
 
