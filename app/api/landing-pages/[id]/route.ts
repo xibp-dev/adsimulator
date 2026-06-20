@@ -27,11 +27,12 @@ async function ownsPage(userId: string, id: string) {
   return !!data;
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!(await ownsPage(session.user.id, params.id))) {
+  const { id } = await params;
+  if (!(await ownsPage(session.user.id, id))) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -51,7 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const { data, error } = await supabaseAdmin
       .from("LandingPage")
       .update(updates)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -64,18 +65,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!(await ownsPage(session.user.id, params.id))) {
+  const { id } = await params;
+  if (!(await ownsPage(session.user.id, id))) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const { error } = await supabaseAdmin
     .from("LandingPage")
     .delete()
-    .eq("id", params.id);
+    .eq("id", id);
 
   if (error) return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 
