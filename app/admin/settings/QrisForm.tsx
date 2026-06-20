@@ -56,32 +56,53 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
     });
   }
 
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleQrisImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     setError("");
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
+      // Step 1: Decode QR string dari gambar
+      const decodeForm = new FormData();
+      decodeForm.append("file", file);
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error ?? "Gagal mengunggah file");
+      const decodeRes = await fetch("/api/admin/decode-qr", {
+        method: "POST",
+        body: decodeForm,
+      });
+      const decodeData = await decodeRes.json();
+
+      if (!decodeRes.ok) {
+        throw new Error(decodeData.error ?? "Gagal membaca QR dari gambar");
       }
 
-      setQrisImageUrl(data.url);
+      // Step 2: Upload gambar ke storage
+      const uploadForm = new FormData();
+      uploadForm.append("file", file);
+
+      const uploadRes = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: uploadForm,
+      });
+      const uploadData = await uploadRes.json();
+
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.error ?? "Gagal mengunggah gambar");
+      }
+
+      // Set kedua nilai sekaligus
+      setQrisImageUrl(uploadData.url);
+      setQrisInput(decodeData.qrisString);
+      setPreviewQris(decodeData.qrisString);
+      setShowPreview(true);
+
     } catch (err: any) {
-      setError(err.message || "Terjadi kesalahan saat mengunggah");
+      setError(err.message || "Terjadi kesalahan");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   }
 
@@ -97,72 +118,38 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
 
   return (
     <div className="space-y-5">
-      {/* Input */}
-      <div>
-        <label className="block text-sm font-semibold text-[#1c2b33] mb-1.5">
-          String QRIS Statis
-        </label>
-        <p className="text-xs text-gray-400 mb-2.5 leading-relaxed">
-          Paste string QRIS statis (teks) dari aplikasi dompet digitalmu. Terlihat seperti:{" "}
-          <code className="bg-gray-100 text-gray-600 px-1 rounded text-[11px]">
-            00020101021226...6304XXXX
-          </code>
-        </p>
-        <textarea
-          value={qrisInput}
-          onChange={(e) => {
-            setQrisInput(e.target.value.trim());
-            setError("");
-            setSaved(false);
-          }}
-          rows={4}
-          placeholder="00020101021226570..."
-          className="w-full px-3 py-2.5 border border-[#dddfe2] rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#0866FF] focus:border-transparent resize-none bg-gray-50"
-          spellCheck={false}
-        />
-        {/* Validation status */}
-        <div className="mt-2 flex items-center gap-2">
-          {qrisInput.length > 10 ? (
-            isValid ? (
-              <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Format QRIS valid ✓
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-xs text-red-500 font-medium">
-                <AlertCircle className="w-3.5 h-3.5" />
-                Format QRIS tidak dikenali
-              </span>
-            )
-          ) : null}
-        </div>
-      </div>
 
-      {/* Upload QRIS Image */}
+      {/* === UPLOAD QRIS === */}
       <div>
-        <label className="block text-sm font-semibold text-[#1c2b33] mb-1.5">
-          Atau Unggah Photo / Gambar QRIS
+        <label className="block text-sm font-semibold text-[#1c2b33] mb-1">
+          Upload Foto / Gambar QRIS
         </label>
-        <p className="text-xs text-gray-400 mb-2.5 leading-relaxed">
-          Unggah gambar QRIS statis (screenshot atau file cetak QRIS) sebagai cadangan jika QRIS dinamis tidak dapat di-generate.
+        <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+          Upload foto QRIS kamu — sistem akan otomatis <span className="font-semibold text-[#0866FF]">membaca & mengekstrak string QRIS</span> dari gambar tersebut.
         </p>
 
-        {/* Upload area */}
         {!qrisImageUrl ? (
-          <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-8 cursor-pointer transition-colors ${uploading ? "border-[#0866FF]/40 bg-blue-50/50" : "border-gray-200 hover:border-[#0866FF]/50 hover:bg-blue-50/30 bg-gray-50"}`}>
+          <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-8 cursor-pointer transition-all ${
+            uploading
+              ? "border-[#0866FF]/50 bg-blue-50/60 cursor-not-allowed"
+              : "border-gray-200 hover:border-[#0866FF]/60 hover:bg-blue-50/30 bg-gray-50"
+          }`}>
             {uploading ? (
               <>
-                <Loader2 className="w-8 h-8 animate-spin text-[#0866FF]" />
-                <p className="text-sm font-medium text-[#0866FF]">Mengunggah gambar...</p>
+                <Loader2 className="w-9 h-9 animate-spin text-[#0866FF]" />
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-[#0866FF]">Memproses gambar QRIS...</p>
+                  <p className="text-xs text-blue-400 mt-1">Mengupload & membaca QR code</p>
+                </div>
               </>
             ) : (
               <>
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Upload className="w-5 h-5 text-[#0866FF]" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center shadow-sm">
+                  <QrCode className="w-7 h-7 text-[#0866FF]" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-[#1c2b33]">Klik untuk pilih gambar QRIS</p>
-                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP — maks. 5MB</p>
+                  <p className="text-sm font-bold text-[#1c2b33]">Klik untuk upload foto QRIS</p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP — otomatis terbaca sebagai string QRIS</p>
                 </div>
               </>
             )}
@@ -170,12 +157,11 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={handleFileUpload}
+              onChange={handleQrisImageUpload}
               disabled={uploading}
             />
           </label>
         ) : (
-          /* Preview setelah upload */
           <div className="border border-gray-200 rounded-2xl overflow-hidden bg-gray-50">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-white">
               <div className="flex items-center gap-2">
@@ -183,21 +169,21 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
                 <p className="text-xs font-semibold text-gray-600">Gambar QRIS Terunggah</p>
               </div>
               <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium text-[#0866FF] cursor-pointer hover:underline">
-                  <Upload className="w-3 h-3" />
-                  Ganti
+                <label className={`flex items-center gap-1.5 text-xs font-medium cursor-pointer hover:underline ${uploading ? "text-gray-400 cursor-not-allowed" : "text-[#0866FF]"}`}>
+                  {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                  {uploading ? "Memproses..." : "Ganti"}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleFileUpload}
+                    onChange={handleQrisImageUpload}
                     disabled={uploading}
                   />
                 </label>
                 <span className="text-gray-200">|</span>
                 <button
                   type="button"
-                  onClick={() => setQrisImageUrl("")}
+                  onClick={() => { setQrisImageUrl(""); setQrisInput(""); setShowPreview(false); }}
                   className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:underline"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -205,22 +191,50 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-center p-6">
-              {uploading ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#0866FF]" />
-                  <p className="text-xs text-gray-400">Mengunggah gambar baru...</p>
-                </div>
-              ) : (
-                <img
-                  src={qrisImageUrl}
-                  alt="QRIS Preview"
-                  className="max-h-48 max-w-full object-contain rounded-xl shadow-sm"
-                />
-              )}
+            <div className="flex items-center justify-center p-5">
+              <img
+                src={qrisImageUrl}
+                alt="QRIS Preview"
+                className="max-h-44 max-w-full object-contain rounded-xl shadow-sm"
+              />
             </div>
           </div>
         )}
+      </div>
+
+      {/* === STRING QRIS HASIL DECODE === */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-sm font-semibold text-[#1c2b33]">
+            String QRIS
+          </label>
+          {qrisInput && (
+            <span className={`flex items-center gap-1 text-xs font-medium ${isValid ? "text-emerald-600" : "text-red-500"}`}>
+              {isValid
+                ? <><CheckCircle2 className="w-3 h-3" /> Terbaca otomatis ✓</>
+                : <><AlertCircle className="w-3 h-3" /> Format tidak dikenali</>
+              }
+            </span>
+          )}
+        </div>
+        <textarea
+          value={qrisInput}
+          onChange={(e) => {
+            setQrisInput(e.target.value.trim());
+            setError("");
+            setSaved(false);
+          }}
+          rows={3}
+          placeholder="Akan terisi otomatis saat upload foto QRIS di atas..."
+          className={`w-full px-3 py-2.5 border rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#0866FF] focus:border-transparent resize-none transition-colors ${
+            qrisInput && !isValid ? "border-red-300 bg-red-50" : "border-[#dddfe2] bg-gray-50"
+          }`}
+          spellCheck={false}
+          readOnly={uploading}
+        />
+        <p className="text-xs text-gray-400 mt-1.5">
+          Terisi otomatis dari scan gambar QRIS. Bisa diedit manual jika perlu.
+        </p>
       </div>
 
       {/* Error */}
@@ -268,7 +282,7 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
         )}
       </div>
 
-      {/* Preview QR */}
+      {/* Preview QR Dinamis */}
       {showPreview && previewDynamic && (
         <div className="border border-[#dddfe2] rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-white">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-[#dddfe2] bg-white">
@@ -297,14 +311,14 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
         </div>
       )}
 
-      {/* Cara mendapatkan QRIS string */}
-      <div className="bg-amber-50 border border-amber-200/70 rounded-xl p-4 text-xs text-amber-800 leading-relaxed space-y-1">
-        <p className="font-semibold text-amber-900">💡 Cara mendapatkan string QRIS statis:</p>
+      {/* Info box */}
+      <div className="bg-blue-50 border border-blue-200/70 rounded-xl p-4 text-xs text-blue-800 leading-relaxed space-y-1">
+        <p className="font-semibold text-blue-900">💡 Cara pakai:</p>
         <ol className="list-decimal list-inside space-y-1 mt-1">
-          <li>Buka aplikasi dompet digital (GoPay, OVO, DANA, ShopeePay, dll.)</li>
-          <li>Buka fitur "Terima Uang" / "QR Saya"</li>
-          <li>Tap "Bagikan" → pilih opsi "Salin kode QRIS" atau screenshot</li>
-          <li>Jika hanya bisa screenshot: upload ke <a href="https://zxing.org/w/decode.jspx" target="_blank" rel="noopener noreferrer" className="underline font-medium">zxing.org</a> untuk decode teks</li>
+          <li>Screenshot atau foto QR code QRIS dari aplikasi dompet digitalmu</li>
+          <li>Upload gambar tersebut di atas</li>
+          <li>Sistem otomatis membaca & mengisi string QRIS</li>
+          <li>Klik <strong>Simpan Pengaturan QRIS</strong></li>
         </ol>
       </div>
     </div>
