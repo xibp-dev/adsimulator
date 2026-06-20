@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Plus, Copy, Edit2, Trash2, Download, Columns,
   ChevronDown, TrendingUp, Eye, X,
@@ -498,6 +499,7 @@ function EditAdModal({
 
 /* ── Main Component ── */
 export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<Tab>("campaigns");
@@ -734,7 +736,7 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1 justify-end">
                           <button
-                            onClick={() => setEditCampaign(campaign)}
+                            onClick={() => router.push(`/dashboard/campaigns/${campaign.id}/edit`)}
                             className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
                             title="Edit"
                           >
@@ -810,7 +812,7 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button
-                          onClick={() => setEditAdSet(a)}
+                          onClick={() => router.push(`/dashboard/adsets/${a.id}/edit`)}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
                           title="Edit"
                         >
@@ -885,7 +887,7 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button
-                          onClick={() => setEditAd(ad)}
+                          onClick={() => router.push(`/dashboard/ads/${ad.id}/edit`)}
                           className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
                           title="Edit"
                         >
