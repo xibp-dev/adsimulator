@@ -23,7 +23,7 @@ export default async function EditCampaignPage({
 
   const { data: campaign } = await supabase
     .from("Campaign")
-    .select("id, name, objective, budgetType, budgetAmount, specialAdCategories, cboEnabled, abTestEnabled, status")
+    .select("id, name, objective, budgetType, budgetAmount, specialAdCategories, cboEnabled, status")
     .eq("id", id)
     .eq("adAccountId", adAccount.id)
     .single();
@@ -43,7 +43,6 @@ export default async function EditCampaignPage({
         name: campaign.name,
         objective: campaign.objective as CampaignObjective,
         cboEnabled: campaign.cboEnabled,
-        abTestEnabled: campaign.abTestEnabled,
         budgetType: campaign.budgetType,
         budgetAmount: campaign.budgetAmount,
         specialAdCategories,
