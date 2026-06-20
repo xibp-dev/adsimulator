@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Plus, Copy, Edit2, Trash2, Download, Columns,
   ChevronDown, MoreHorizontal, TrendingUp, Eye, X,
-  ImageIcon, Youtube
+  ImageIcon, PlayCircle
 } from "lucide-react";
 import { CampaignObjective, CampaignStatus } from "@/types";
 import { formatCurrency, formatNumber } from "@/lib/simulate";
