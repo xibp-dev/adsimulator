@@ -3,6 +3,7 @@
 import { CampaignFormData } from "./CreateCampaignFlow";
 import { OBJECTIVE_INFO, SPECIAL_AD_CATEGORIES } from "@/lib/mockData";
 import { formatCurrency } from "@/lib/simulate";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 
 interface Props {
   data: CampaignFormData;
@@ -58,25 +59,60 @@ export default function StepCampaign({ data, onChange, onNext }: Props) {
           <p className="text-xs text-gray-500 mb-3">
             Deklarasikan jika iklan Anda terkait kredit, pekerjaan, perumahan, atau isu sosial, pemilu, dan politik.
           </p>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {SPECIAL_AD_CATEGORIES.map((cat) => (
-              <label key={cat.value} className="flex items-center gap-2.5 text-sm text-[#1c2b33] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={data.specialAdCategories.includes(cat.value)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      onChange({ specialAdCategories: [...data.specialAdCategories, cat.value] });
-                    } else {
-                      onChange({ specialAdCategories: data.specialAdCategories.filter((c) => c !== cat.value) });
-                    }
-                  }}
-                  className="rounded border-gray-300 accent-[#0866FF]"
-                />
-                {cat.label}
-              </label>
+              <div key={cat.value}>
+                <label className="flex items-start gap-2.5 text-sm text-[#1c2b33] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.specialAdCategories.includes(cat.value)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        onChange({ specialAdCategories: [...data.specialAdCategories, cat.value] });
+                      } else {
+                        onChange({ specialAdCategories: data.specialAdCategories.filter((c) => c !== cat.value) });
+                      }
+                    }}
+                    className="rounded border-gray-300 accent-[#0866FF] mt-0.5 flex-shrink-0"
+                  />
+                  <div>
+                    <span className="font-medium">{cat.label}</span>
+                    <p className="text-xs text-gray-400 mt-0.5">{cat.desc}</p>
+                  </div>
+                </label>
+              </div>
             ))}
           </div>
+
+          {/* Warning donasi / social issues */}
+          {data.specialAdCategories.includes("SOCIAL_ISSUES") && (
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3.5 space-y-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <p className="text-xs font-bold text-amber-800">Iklan Isu Sosial & Donasi — Wajib Izin Meta</p>
+              </div>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Kategori ini mencakup <strong>iklan donasi, kampanye sosial, penggalangan dana, dan advokasi</strong>. Meta mewajibkan proses otorisasi sebelum iklan ini bisa tayang.
+              </p>
+              <div className="space-y-1.5 text-xs text-amber-800">
+                <p className="font-semibold">Langkah mendapatkan izin:</p>
+                <ol className="list-decimal list-inside space-y-1 text-amber-700 leading-relaxed">
+                  <li>Buka <strong>Meta Business Suite</strong> → Pengaturan Bisnis → Pusat Keamanan.</li>
+                  <li>Klik <strong>"Mulai Verifikasi"</strong> di bagian Otorisasi Iklan Isu Sosial.</li>
+                  <li>Konfirmasi negara/wilayah penargetan iklan Anda.</li>
+                  <li>Verifikasi identitas Anda (KTP / paspor) atau organisasi (dokumen resmi).</li>
+                  <li>Tunggu persetujuan Meta — biasanya <strong>1–5 hari kerja</strong>.</li>
+                  <li>Setelah disetujui, akun iklan Anda akan muncul label <em>"Diotorisasi"</em> dan iklan bisa ditayangkan.</li>
+                </ol>
+              </div>
+              <div className="flex items-center gap-1.5 pt-1">
+                <ExternalLink className="w-3.5 h-3.5 text-amber-600" />
+                <p className="text-[11px] text-amber-600 font-medium">
+                  Panduan lengkap: facebook.com/business/help/214754519275355
+                </p>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Pengujian A/B */}

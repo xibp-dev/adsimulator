@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Search, BookOpen, Lightbulb, ShieldCheck, CheckCircle2, XCircle,
-  LayoutGrid, ArrowRight, Calculator as CalcIcon,
+  LayoutGrid, ArrowRight, Calculator as CalcIcon, Heart, AlertTriangle,
 } from "lucide-react";
 
 type TermCategory = "Biaya" | "Performa" | "Audiens" | "Teknis";
@@ -511,6 +511,88 @@ export default function PanduanPage() {
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+
+          {/* Iklan Donasi */}
+          <div className="bg-white rounded-2xl border border-[#dddfe2] shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100 bg-rose-50/60">
+              <Heart className="w-4 h-4 text-rose-500" />
+              <h3 className="text-sm font-bold text-rose-700">Iklan Donasi & Penggalangan Dana — Butuh Izin Khusus</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Iklan donasi, kampanye sosial, penggalangan dana, dan advokasi di Meta masuk ke kategori <strong>Isu Sosial, Pemilu, atau Politik</strong>. Kategori ini <strong>tidak bisa langsung ditayangkan</strong> — akun iklan Anda harus diotorisasi terlebih dahulu oleh Meta.
+              </p>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <p className="text-xs font-bold text-amber-800">Tanpa otorisasi, iklan donasi Anda akan otomatis ditolak Meta.</p>
+                </div>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  Ini berlaku meskipun tujuan Anda murni sosial/kemanusiaan. Proses verifikasi membuktikan identitas pengiklan agar audiens tahu siapa yang menjalankan kampanye tersebut.
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#1c2b33] mb-3">Langkah Mendapatkan Otorisasi Iklan Donasi:</p>
+                <ol className="space-y-3">
+                  {[
+                    {
+                      step: "1",
+                      title: "Buka Meta Business Suite → Pengaturan Bisnis",
+                      desc: "Masuk ke business.facebook.com. Di menu kiri, klik Pengaturan Bisnis → Pusat Keamanan.",
+                    },
+                    {
+                      step: "2",
+                      title: "Mulai proses Otorisasi Iklan Isu Sosial",
+                      desc: "Klik tombol \"Mulai Verifikasi\" di bagian \"Otorisasi untuk Iklan tentang Isu Sosial, Pemilu, atau Politik\".",
+                    },
+                    {
+                      step: "3",
+                      title: "Konfirmasi negara & tujuan kampanye",
+                      desc: "Pilih negara/wilayah yang akan menjadi target iklan. Untuk Indonesia, pilih Indonesia.",
+                    },
+                    {
+                      step: "4",
+                      title: "Verifikasi identitas",
+                      desc: "Upload KTP/paspor untuk verifikasi personal, atau dokumen resmi organisasi (akta notaris, SK Kemenkumham) jika atas nama lembaga/yayasan.",
+                    },
+                    {
+                      step: "5",
+                      title: "Konfirmasi alamat via surat fisik (jika diminta)",
+                      desc: "Meta terkadang mengirim kode verifikasi melalui surat ke alamat terdaftar. Masukkan kode tersebut dalam 30 hari.",
+                    },
+                    {
+                      step: "6",
+                      title: "Tunggu persetujuan Meta (1–5 hari kerja)",
+                      desc: "Setelah disetujui, akun iklan Anda akan berlabel \"Diotorisasi\". Pilih kategori Isu Sosial saat membuat kampanye, lalu iklan siap ditayangkan.",
+                    },
+                  ].map((item) => (
+                    <li key={item.step} className="flex gap-3">
+                      <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {item.step}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#1c2b33]">{item.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
+                <p className="text-xs font-bold text-blue-800">Tips tambahan untuk iklan donasi yang efektif:</p>
+                <ul className="space-y-1.5 text-xs text-blue-700">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" /><span>Gunakan <strong>tujuan Traffic</strong> (arahkan ke halaman donasi) atau <strong>Leads</strong> (kumpulkan data donatur potensial).</span></li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" /><span>Gunakan platform donasi terpercaya (Kitabisa, Zakat.or.id) sebagai landing page — lebih dipercaya audiens.</span></li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" /><span>Sertakan <strong>nama organisasi yang jelas</strong> di iklan — Meta mewajibkan label "Dibayar oleh [nama org]" pada iklan kategori ini.</span></li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" /><span>Hindari gambar yang terlalu dramatis/manipulatif — bisa kena tolak karena melanggar kebijakan konten emosional berlebihan.</span></li>
+                  <li className="flex items-start gap-2"><XCircle className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" /><span><strong>Dilarang:</strong> Iklan donasi yang menjanjikan hadiah/reward sebagai imbalan donasi.</span></li>
+                </ul>
+              </div>
             </div>
           </div>
 

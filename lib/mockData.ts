@@ -343,10 +343,10 @@ export const BID_STRATEGIES = [
 ];
 
 export const SPECIAL_AD_CATEGORIES = [
-  { value: "CREDIT", label: "Kredit" },
-  { value: "EMPLOYMENT", label: "Pekerjaan" },
-  { value: "HOUSING", label: "Perumahan" },
-  { value: "SOCIAL_ISSUES", label: "Isu sosial, pemilu, atau politik" },
+  { value: "CREDIT", label: "Kredit", desc: "Iklan terkait pinjaman, kartu kredit, atau jasa keuangan." },
+  { value: "EMPLOYMENT", label: "Pekerjaan", desc: "Iklan lowongan kerja, magang, atau peluang bisnis." },
+  { value: "HOUSING", label: "Perumahan", desc: "Iklan jual/sewa properti, KPR, atau layanan relokasi." },
+  { value: "SOCIAL_ISSUES", label: "Isu sosial, pemilu, atau politik", desc: "Termasuk iklan donasi, kampanye sosial, dan advokasi. Wajib verifikasi identitas di Meta." },
 ];
 
 export const CTA_OPTIONS: { value: string; label: string }[] = [
