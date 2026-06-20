@@ -127,14 +127,82 @@ const defaultData: CampaignFormData = {
 
 type Level = "campaign" | "adset" | "ad";
 
-export default function CreateCampaignFlow() {
+interface CreateCampaignFlowProps {
+  mode?: "create" | "edit";
+  editLevel?: Level;
+  entityId?: string;
+  initialData?: Partial<CampaignFormData>;
+  entityLabels?: { campaign?: string; adset?: string; ad?: string };
+}
+
+export default function CreateCampaignFlow({
+  mode = "create",
+  editLevel,
+  entityId,
+  initialData,
+  entityLabels,
+}: CreateCampaignFlowProps = {}) {
   const router = useRouter();
-  const [objectiveSelected, setObjectiveSelected] = useState(false);
-  const [level, setLevel] = useState<Level>("campaign");
-  const [data, setData] = useState<CampaignFormData>(defaultData);
+  const isEdit = mode === "edit";
+  const [objectiveSelected, setObjectiveSelected] = useState(isEdit);
+  const [level, setLevel] = useState<Level>(isEdit ? (editLevel ?? "campaign") : "campaign");
+  const [data, setData] = useState<CampaignFormData>(
+    isEdit ? { ...defaultData, ...initialData } : defaultData
+  );
   const [publishing, setPublishing] = useState(false);
 
   const update = (partial: Partial<CampaignFormData>) => setData((prev) => ({ ...prev, ...partial }));
+
+  // ---- Edit mode: simpan satu entitas via PATCH ----
+  const handleSaveEdit = async () => {
+    if (!entityId || !editLevel) return;
+    setPublishing(true);
+    try {
+      let url = "";
+      let payload: Record<string, unknown> = {};
+      if (editLevel === "campaign") {
+        url = `/api/campaigns/${entityId}`;
+        payload = {
+          name: data.name,
+          budgetType: data.budgetType,
+          budgetAmount: data.budgetAmount,
+        };
+      } else if (editLevel === "adset") {
+        url = `/api/adsets/${entityId}`;
+        payload = {
+          name: data.adSetName,
+          budgetType: data.adSetBudgetType,
+          budgetAmount: data.adSetBudgetAmount,
+          scheduleStart: data.scheduleStart,
+          scheduleEnd: data.scheduleEnd || null,
+        };
+      } else {
+        url = `/api/ads/${entityId}`;
+        payload = {
+          name: data.adName,
+          primaryText: data.primaryText,
+          headline: data.headline,
+          description: data.description,
+          cta: data.cta,
+          destinationUrl: data.destinationUrl,
+          mediaUrls: data.mediaUrls,
+        };
+      }
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Penyimpanan gagal");
+      router.push("/dashboard/ads-manager");
+      router.refresh();
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menyimpan perubahan. Coba lagi.");
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   // Saat tujuan kampanye berubah, sesuaikan field yang bergantung pada tujuan
   const selectObjective = (obj: CampaignObjective) => {
@@ -240,9 +308,19 @@ export default function CreateCampaignFlow() {
   }
 
   const objLabel = OBJECTIVE_INFO[data.objective]?.label ?? data.objective;
-  const campaignTitle = data.name.trim() || "Kampanye baru";
-  const adSetTitle = data.adSetName.trim() || "Set Iklan baru";
-  const adTitle = data.adName.trim() || "Iklan baru";
+  const campaignTitle = (entityLabels?.campaign ?? data.name).trim() || "Kampanye baru";
+  const adSetTitle = (entityLabels?.adset ?? data.adSetName).trim() || "Set Iklan baru";
+  const adTitle = (entityLabels?.ad ?? data.adName).trim() || "Iklan baru";
+
+  const editTitle =
+    editLevel === "campaign" ? "Edit kampanye" :
+    editLevel === "adset" ? "Edit set iklan" :
+    editLevel === "ad" ? "Edit iklan" : "Edit";
+
+  const saveAction = isEdit ? handleSaveEdit : handlePublish;
+  const saveDisabled = isEdit
+    ? publishing
+    : (publishing || !data.name.trim());
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#f0f2f5]">
@@ -250,31 +328,33 @@ export default function CreateCampaignFlow() {
       <header className="flex items-center justify-between bg-white border-b border-[#dddfe2] px-4 h-12 flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push(isEdit ? "/dashboard/ads-manager" : "/dashboard")}
             className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#1c2b33] px-2 py-1 rounded-lg hover:bg-gray-100"
           >
-            <X className="w-4 h-4" /> Tutup
+            <X className="w-4 h-4" /> {isEdit ? "Batal" : "Tutup"}
           </button>
           <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-[#1c2b33]">Buat kampanye</span>
+          <span className="text-sm font-semibold text-[#1c2b33]">{isEdit ? editTitle : "Buat kampanye"}</span>
           <span className="hidden sm:inline-flex items-center gap-1 text-xs text-gray-400">
             <ChevronRight className="w-3 h-3" /> {objLabel}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push(isEdit ? "/dashboard/ads-manager" : "/dashboard")}
             className="px-3 py-1.5 text-sm font-semibold text-[#1c2b33] hover:bg-gray-100 rounded-lg"
           >
-            Buang draf
+            {isEdit ? "Batal" : "Buang draf"}
           </button>
           <button
-            onClick={handlePublish}
-            disabled={publishing || !data.name.trim()}
+            onClick={saveAction}
+            disabled={saveDisabled}
             className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold bg-[#0866FF] hover:bg-[#0757d4] disabled:opacity-50 text-white rounded-lg"
           >
             {publishing && <Loader2 className="w-4 h-4 animate-spin" />}
-            {publishing ? "Memublikasikan..." : "Publikasikan"}
+            {isEdit
+              ? (publishing ? "Menyimpan..." : "Simpan perubahan")
+              : (publishing ? "Memublikasikan..." : "Publikasikan")}
           </button>
         </div>
       </header>
@@ -289,6 +369,7 @@ export default function CreateCampaignFlow() {
               title={campaignTitle}
               subtitle={objLabel}
               active={level === "campaign"}
+              disabled={isEdit && editLevel !== "campaign"}
               onClick={() => setLevel("campaign")}
               depth={0}
             />
@@ -297,6 +378,7 @@ export default function CreateCampaignFlow() {
               title={adSetTitle}
               subtitle="Set Iklan"
               active={level === "adset"}
+              disabled={isEdit && editLevel !== "adset"}
               onClick={() => setLevel("adset")}
               depth={1}
             />
@@ -305,6 +387,7 @@ export default function CreateCampaignFlow() {
               title={adTitle}
               subtitle="Iklan"
               active={level === "ad"}
+              disabled={isEdit && editLevel !== "ad"}
               onClick={() => setLevel("ad")}
               depth={2}
             />
@@ -315,27 +398,31 @@ export default function CreateCampaignFlow() {
         <main className={`flex-1 overflow-y-auto bg-[#f0f2f5] ${level === "ad" ? "overflow-hidden" : ""}`}>
           {/* Mobile level tabs */}
           <div className="md:hidden flex border-b border-[#dddfe2] bg-white sticky top-0 z-10">
-            {([["campaign", "Kampanye"], ["adset", "Set Iklan"], ["ad", "Iklan"]] as const).map(([lv, lb]) => (
-              <button
-                key={lv}
-                onClick={() => setLevel(lv)}
-                className={`flex-1 py-2.5 text-sm font-medium ${
-                  level === lv ? "text-[#0866FF] border-b-2 border-[#0866FF]" : "text-gray-500"
-                }`}
-              >
-                {lb}
-              </button>
-            ))}
+            {([["campaign", "Kampanye"], ["adset", "Set Iklan"], ["ad", "Iklan"]] as const).map(([lv, lb]) => {
+              const tabDisabled = isEdit && editLevel !== lv;
+              return (
+                <button
+                  key={lv}
+                  onClick={() => { if (!tabDisabled) setLevel(lv); }}
+                  disabled={tabDisabled}
+                  className={`flex-1 py-2.5 text-sm font-medium ${
+                    level === lv ? "text-[#0866FF] border-b-2 border-[#0866FF]" : "text-gray-500"
+                  } ${tabDisabled ? "opacity-40 cursor-not-allowed" : ""}`}
+                >
+                  {lb}
+                </button>
+              );
+            })}
           </div>
 
           {level === "campaign" && (
-            <StepCampaign data={data} onChange={update} onNext={() => setLevel("adset")} />
+            <StepCampaign data={data} onChange={update} onNext={isEdit ? handleSaveEdit : () => setLevel("adset")} />
           )}
           {level === "adset" && (
-            <StepAdSet data={data} onChange={update} onNext={() => setLevel("ad")} />
+            <StepAdSet data={data} onChange={update} onNext={isEdit ? handleSaveEdit : () => setLevel("ad")} />
           )}
           {level === "ad" && (
-            <StepAd data={data} onChange={update} onPublish={handlePublish} publishing={publishing} />
+            <StepAd data={data} onChange={update} onPublish={saveAction} publishing={publishing} />
           )}
         </main>
 
@@ -351,10 +438,10 @@ export default function CreateCampaignFlow() {
 }
 
 function NavNode({
-  icon, title, subtitle, active, onClick, depth,
+  icon, title, subtitle, active, onClick, depth, disabled,
 }: {
   icon: React.ReactNode; title: string; subtitle: string;
-  active: boolean; onClick: () => void; depth: number;
+  active: boolean; onClick: () => void; depth: number; disabled?: boolean;
 }) {
   return (
     <div style={{ paddingLeft: depth * 16 }} className="relative">
@@ -362,10 +449,11 @@ function NavNode({
         <span className="absolute left-2 top-0 bottom-1/2 w-px bg-gray-200" style={{ left: depth * 16 - 8 }} />
       )}
       <button
-        onClick={onClick}
+        onClick={() => { if (!disabled) onClick(); }}
+        disabled={disabled}
         className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors mb-1 ${
-          active ? "bg-[#e7f0ff]" : "hover:bg-gray-50"
-        }`}
+          active ? "bg-[#e7f0ff]" : disabled ? "" : "hover:bg-gray-50"
+        } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
       >
         <span className={active ? "text-[#0866FF]" : "text-gray-400"}>{icon}</span>
         <span className="min-w-0 flex-1">

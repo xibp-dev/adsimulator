@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
-import EditAdClient from "./EditAdClient";
+import CreateCampaignFlow from "@/components/create/CreateCampaignFlow";
+import type { CampaignObjective, AdFormat, CTA } from "@/types";
 
 export default async function EditAdPage({
   params,
@@ -12,7 +13,6 @@ export default async function EditAdPage({
   const session = await auth();
   if (!session) redirect("/login");
 
-  // Get user's ad account
   const { data: adAccount } = await supabase
     .from("AdAccount")
     .select("id")
@@ -21,26 +21,47 @@ export default async function EditAdPage({
 
   if (!adAccount) notFound();
 
-  // Fetch ad with ownership verification via Ad → AdSet → Campaign → AdAccount
+  // Ownership via Ad → AdSet → Campaign → AdAccount; juga ambil objective & conversionLocation
   const { data: ad } = await supabase
     .from("Ad")
     .select(
-      "id, name, format, primaryText, headline, description, cta, destinationUrl, mediaUrls, identityPage, identityInstagram, status, adSet:AdSet(id, campaign:Campaign(adAccountId))"
+      "id, name, format, primaryText, headline, description, cta, destinationUrl, mediaUrls, identityPage, identityInstagram, status, adSet:AdSet(id, name, conversionLocation, campaign:Campaign(name, objective, adAccountId))"
     )
     .eq("id", id)
     .single();
 
-  const adAccountIdFromAd = (ad as any)?.adSet?.campaign?.adAccountId;
-  if (!ad || adAccountIdFromAd !== adAccount.id) notFound();
+  const a = ad as any;
+  const adSet = a?.adSet;
+  const campaign = adSet?.campaign;
+  if (!ad || campaign?.adAccountId !== adAccount.id) notFound();
 
-  // Parse mediaUrls if stored as JSON string
   let mediaUrls: string[] = [];
   try {
-    const raw = (ad as any).mediaUrls;
-    mediaUrls = typeof raw === "string" ? JSON.parse(raw) : (raw ?? []);
+    mediaUrls = typeof a.mediaUrls === "string" ? JSON.parse(a.mediaUrls) : (a.mediaUrls ?? []);
   } catch {
     mediaUrls = [];
   }
 
-  return <EditAdClient ad={{ ...(ad as any), mediaUrls }} />;
+  return (
+    <CreateCampaignFlow
+      mode="edit"
+      editLevel="ad"
+      entityId={a.id}
+      entityLabels={{ campaign: campaign?.name, adset: adSet?.name, ad: a.name }}
+      initialData={{
+        objective: (campaign?.objective ?? "AWARENESS") as CampaignObjective,
+        conversionLocation: adSet?.conversionLocation ?? "WEBSITE",
+        adName: a.name,
+        identityPage: a.identityPage ?? "",
+        identityInstagram: a.identityInstagram ?? "",
+        format: a.format as AdFormat,
+        primaryText: a.primaryText ?? "",
+        headline: a.headline ?? "",
+        description: a.description ?? "",
+        mediaUrls,
+        cta: a.cta as CTA,
+        destinationUrl: a.destinationUrl ?? "",
+      }}
+    />
+  );
 }

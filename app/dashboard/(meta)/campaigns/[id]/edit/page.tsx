@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
-import EditCampaignClient from "./EditCampaignClient";
+import CreateCampaignFlow from "@/components/create/CreateCampaignFlow";
+import type { CampaignObjective } from "@/types";
 
 export default async function EditCampaignPage({
   params,
@@ -12,7 +13,6 @@ export default async function EditCampaignPage({
   const session = await auth();
   if (!session) redirect("/login");
 
-  // Get user's ad account
   const { data: adAccount } = await supabase
     .from("AdAccount")
     .select("id")
@@ -21,7 +21,6 @@ export default async function EditCampaignPage({
 
   if (!adAccount) notFound();
 
-  // Fetch campaign and verify ownership
   const { data: campaign } = await supabase
     .from("Campaign")
     .select("id, name, objective, budgetType, budgetAmount, specialAdCategories, cboEnabled, abTestEnabled, status")
@@ -31,5 +30,24 @@ export default async function EditCampaignPage({
 
   if (!campaign) notFound();
 
-  return <EditCampaignClient campaign={campaign} />;
+  let specialAdCategories: string[] = [];
+  try { specialAdCategories = JSON.parse(campaign.specialAdCategories ?? "[]"); } catch {}
+
+  return (
+    <CreateCampaignFlow
+      mode="edit"
+      editLevel="campaign"
+      entityId={campaign.id}
+      entityLabels={{ campaign: campaign.name }}
+      initialData={{
+        name: campaign.name,
+        objective: campaign.objective as CampaignObjective,
+        cboEnabled: campaign.cboEnabled,
+        abTestEnabled: campaign.abTestEnabled,
+        budgetType: campaign.budgetType,
+        budgetAmount: campaign.budgetAmount,
+        specialAdCategories,
+      }}
+    />
+  );
 }
