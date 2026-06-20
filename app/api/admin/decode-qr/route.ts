@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import jsQR from "jsqr";
-import Jimp from "jimp";
+import { Jimp } from "jimp";
 
 async function requireAdmin() {
   const session = await auth();
