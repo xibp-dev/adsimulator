@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { CampaignFormData } from "./CreateCampaignFlow";
 import { MOCK_PAGES, MOCK_INSTAGRAM, CTA_OPTIONS, MOCK_INSTANT_FORMS } from "@/lib/mockData";
 import { CTA } from "@/types";
-import { ImagePlus, Loader2, Eye, Plus, Trash2, Youtube, Image as ImageIcon, Link } from "lucide-react";
+import { ImagePlus, Loader2, Eye, Plus, Trash2, Youtube, Image as ImageIcon, Link2 } from "lucide-react";
 import AdPreviewPanel from "./AdPreviewPanel";
 
 interface Props {
@@ -189,7 +189,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
               {!(data.mediaUrls?.[0] ?? "").startsWith("yt:") && (
                 <div className="space-y-2">
                   <div className="flex gap-2 items-center">
-                    <Link className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <Link2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <input
                       type="url"
                       value={data.mediaUrls?.[0] ?? ""}
