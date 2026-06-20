@@ -146,22 +146,26 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
         <p className="text-xs text-gray-400 mb-2.5 leading-relaxed">
           Unggah gambar QRIS statis (screenshot atau file cetak QRIS) sebagai cadangan jika QRIS dinamis tidak dapat di-generate.
         </p>
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            value={qrisImageUrl}
-            onChange={(e) => setQrisImageUrl(e.target.value)}
-            placeholder="https://..."
-            className="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/40 focus:border-[#0866FF] bg-gray-50 focus:bg-white transition-colors"
-          />
-          
-          <label className="flex items-center gap-2 cursor-pointer bg-white hover:bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors flex-shrink-0">
+
+        {/* Upload area */}
+        {!qrisImageUrl ? (
+          <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-8 cursor-pointer transition-colors ${uploading ? "border-[#0866FF]/40 bg-blue-50/50" : "border-gray-200 hover:border-[#0866FF]/50 hover:bg-blue-50/30 bg-gray-50"}`}>
             {uploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#0866FF]" />
+              <>
+                <Loader2 className="w-8 h-8 animate-spin text-[#0866FF]" />
+                <p className="text-sm font-medium text-[#0866FF]">Mengunggah gambar...</p>
+              </>
             ) : (
-              <Upload className="w-4 h-4 text-gray-500" />
+              <>
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-[#0866FF]" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-[#1c2b33]">Klik untuk pilih gambar QRIS</p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP — maks. 5MB</p>
+                </div>
+              </>
             )}
-            <span>{uploading ? "Mengunggah..." : "Pilih Gambar"}</span>
             <input
               type="file"
               accept="image/*"
@@ -170,23 +174,51 @@ export default function QrisForm({ initialQris, initialQrisImageUrl }: Props) {
               disabled={uploading}
             />
           </label>
-
-          {qrisImageUrl && (
-            <button
-              type="button"
-              onClick={() => setQrisImageUrl("")}
-              className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-200 transition-colors flex-shrink-0"
-              title="Hapus gambar"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        {qrisImageUrl && (
-          <div className="mt-3 p-3 bg-gray-50 border border-gray-100 rounded-xl inline-block">
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Preview Photo QRIS</p>
-            <img src={qrisImageUrl} alt="QRIS Uploaded" className="max-h-36 object-contain rounded border border-gray-200" />
+        ) : (
+          /* Preview setelah upload */
+          <div className="border border-gray-200 rounded-2xl overflow-hidden bg-gray-50">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-white">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <p className="text-xs font-semibold text-gray-600">Gambar QRIS Terunggah</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-[#0866FF] cursor-pointer hover:underline">
+                  <Upload className="w-3 h-3" />
+                  Ganti
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                  />
+                </label>
+                <span className="text-gray-200">|</span>
+                <button
+                  type="button"
+                  onClick={() => setQrisImageUrl("")}
+                  className="flex items-center gap-1.5 text-xs font-medium text-red-500 hover:underline"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Hapus
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center justify-center p-6">
+              {uploading ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#0866FF]" />
+                  <p className="text-xs text-gray-400">Mengunggah gambar baru...</p>
+                </div>
+              ) : (
+                <img
+                  src={qrisImageUrl}
+                  alt="QRIS Preview"
+                  className="max-h-48 max-w-full object-contain rounded-xl shadow-sm"
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
