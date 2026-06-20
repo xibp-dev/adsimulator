@@ -214,7 +214,7 @@ export default function CreateCampaignFlow() {
       });
       if (!adRes.ok) throw new Error("Pembuatan iklan gagal");
 
-      router.push("/dashboard/campaigns");
+      router.push("/dashboard/ads-manager");
     } catch (e) {
       console.error(e);
       alert("Gagal membuat kampanye. Coba lagi.");

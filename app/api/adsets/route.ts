@@ -25,6 +25,42 @@ const createSchema = z.object({
   manualPlacements: z.array(z.string()).default([]),
 });
 
+export async function GET() {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: adAccount } = await supabase
+    .from("AdAccount")
+    .select("id")
+    .eq("userId", session.user.id)
+    .single();
+
+  if (!adAccount) return NextResponse.json([]);
+
+  const { data: campaigns } = await supabase
+    .from("Campaign")
+    .select("id, name")
+    .eq("adAccountId", adAccount.id);
+
+  const campaignIds = (campaigns ?? []).map((c: any) => c.id);
+  if (campaignIds.length === 0) return NextResponse.json([]);
+
+  const { data: adSets } = await supabase
+    .from("AdSet")
+    .select("*")
+    .in("campaignId", campaignIds)
+    .order("createdAt", { ascending: false })
+    .limit(200);
+
+  const campaignMap = Object.fromEntries((campaigns ?? []).map((c: any) => [c.id, c.name]));
+  const result = (adSets ?? []).map((a: any) => ({
+    ...a,
+    campaignName: campaignMap[a.campaignId] ?? "—",
+  }));
+
+  return NextResponse.json(result);
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

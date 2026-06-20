@@ -18,6 +18,52 @@ const createSchema = z.object({
   destinationUrl: z.string().default(""),
 });
 
+export async function GET() {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: adAccount } = await supabase
+    .from("AdAccount")
+    .select("id")
+    .eq("userId", session.user.id)
+    .single();
+
+  if (!adAccount) return NextResponse.json([]);
+
+  const { data: campaigns } = await supabase
+    .from("Campaign")
+    .select("id")
+    .eq("adAccountId", adAccount.id);
+
+  const campaignIds = (campaigns ?? []).map((c: any) => c.id);
+  if (campaignIds.length === 0) return NextResponse.json([]);
+
+  const { data: adSets } = await supabase
+    .from("AdSet")
+    .select("id, name, campaignId")
+    .in("campaignId", campaignIds);
+
+  const adSetIds = (adSets ?? []).map((a: any) => a.id);
+  if (adSetIds.length === 0) return NextResponse.json([]);
+
+  const adSetMap = Object.fromEntries((adSets ?? []).map((a: any) => [a.id, a.name]));
+
+  const { data: ads } = await supabase
+    .from("Ad")
+    .select("*")
+    .in("adSetId", adSetIds)
+    .order("createdAt", { ascending: false })
+    .limit(200);
+
+  const result = (ads ?? []).map((ad: any) => ({
+    ...ad,
+    adSetName: adSetMap[ad.adSetId] ?? "—",
+    mediaUrls: (() => { try { return JSON.parse(ad.mediaUrls); } catch { return []; } })(),
+  }));
+
+  return NextResponse.json(result);
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
