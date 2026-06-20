@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabaseAdmin } from "./supabase";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
@@ -41,7 +41,7 @@ const DEFAULTS: SiteSettings = {
 const fetchSiteSettings = unstable_cache(
   async (): Promise<SiteSettings> => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("SiteSettings")
         .select("*")
         .eq("id", "singleton")
@@ -62,7 +62,7 @@ export async function updateSiteSettings(
   values: Partial<Omit<SiteSettings, "id" | "updatedAt">>
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("SiteSettings")
       .upsert({ id: "singleton", ...values, updatedAt: new Date().toISOString() });
     if (error) return { success: false, error: error.message };
