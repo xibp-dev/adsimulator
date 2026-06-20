@@ -149,7 +149,7 @@ export default function FanspagePage() {
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-[#dddfe2]">
         <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
+          <Link href="/dashboard/hub" className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
