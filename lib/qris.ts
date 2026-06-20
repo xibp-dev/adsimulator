@@ -49,43 +49,41 @@ function tlv(tag: string, value: string): string {
  * @throws            Error jika format QRIS tidak valid
  */
 export function generateDynamicQris(staticQris: string, amount: number): string {
-  const raw = staticQris.trim().toUpperCase();
+  // Bersihkan: trim whitespace, uppercase, hapus karakter non-printable
+  const raw = staticQris.trim().toUpperCase().replace(/[^\x20-\x7E]/g, "");
 
-  // Validasi dasar: QRIS harus diawali "000201" dan diakhiri 4 char CRC
+  // Validasi dasar: QRIS harus diawali "000201"
   if (!raw.startsWith("000201")) {
     throw new Error("Format QRIS tidak valid (harus diawali 000201)");
   }
 
-  // Hapus 4 karakter CRC di akhir agar bisa diproses
-  const body = raw.slice(0, -4); // buang "63" tag + CRC
-  // Pastikan tanpa tag 63 di akhir
-  const crcPrefix = raw.slice(-6, -4); // harusnya "63" + "04"
-  if (crcPrefix !== "6304") {
+  // Cari posisi tag 6304 secara aktif (bukan asumsi posisi fixed)
+  const crcTagIndex = raw.lastIndexOf("6304");
+  if (crcTagIndex === -1) {
     throw new Error("Format QRIS tidak valid (tidak ditemukan CRC tag 6304)");
   }
 
+  // Ambil body (semua sebelum 6304) dan CRC asli (4 char setelah 6304)
+  const body = raw.substring(0, crcTagIndex);
+
   // Ubah Point of Initiation Method: tag 01 value "11" → "12"
-  // "11" = static, "12" = dynamic (one-time use)
-  let modified = body.replace(/^(000201010211)/, "000201010212");
-  if (!modified.startsWith("000201010212")) {
-    // Kalau sudah "12" tidak perlu diubah
-    modified = body.replace(/^(000201010212)/, "000201010212");
+  let modified = body.replace("000201010211", "000201010212");
+  // Jika sudah 12 (dynamic), biarkan saja
+  if (!modified.includes("000201010212")) {
+    modified = body; // fallback: tidak ubah
   }
 
   // Sisipkan tag 54 (Transaction Amount) sebelum tag 58 (Country Code)
-  // Nominal dalam string tanpa koma/titik, bulatkan ke integer
   const amountStr = Math.round(amount).toString();
   const tag54 = tlv("54", amountStr);
 
   if (modified.includes("5802")) {
-    // Sisipkan tepat sebelum "5802"
     modified = modified.replace("5802", `${tag54}5802`);
   } else {
-    // Fallback: append sebelum tag 63
     modified = modified + tag54;
   }
 
-  // Tambahkan kembali tag 63 (CRC placeholder "0000") lalu hitung CRC
+  // Hitung ulang CRC
   const withCrcTag = modified + "6304";
   const checksum = crc16(withCrcTag);
 
@@ -95,17 +93,16 @@ export function generateDynamicQris(staticQris: string, amount: number): string 
 /** Validasi apakah sebuah string adalah QRIS yang valid */
 export function isValidQris(raw: string): boolean {
   try {
-    const trimmed = raw.trim().toUpperCase();
+    const trimmed = raw.trim().toUpperCase().replace(/[^\x20-\x7E]/g, "");
     if (!trimmed.startsWith("000201")) return false;
     if (!trimmed.includes("6304")) return false;
     if (trimmed.length < 20) return false;
-    // Verifikasi CRC
-    const body = trimmed.slice(0, -4);
-    const existingCrc = trimmed.slice(-4);
-    const calculatedCrc = crc16(body + "6304");
-    // Cukup cek format, tidak reject jika CRC tidak cocok (bisa sudah dynamic)
-    return /^[0-9A-F]{4}$/.test(existingCrc);
+    // Verifikasi CRC format (4 hex chars setelah 6304 terakhir)
+    const crcIdx = trimmed.lastIndexOf("6304");
+    const crcValue = trimmed.substring(crcIdx + 4, crcIdx + 8);
+    return /^[0-9A-F]{4}$/.test(crcValue);
   } catch {
     return false;
   }
 }
+
