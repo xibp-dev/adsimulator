@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Search, BookOpen, Lightbulb, ShieldCheck, CheckCircle2, XCircle,
   LayoutGrid, ArrowRight, Calculator as CalcIcon, Heart, AlertTriangle,
+  Target, Rocket, PenTool, ClipboardList, Sparkles, Film, Flag, TrendingUp,
 } from "lucide-react";
 
 type TermCategory = "Biaya" | "Performa" | "Audiens" | "Teknis";
@@ -186,10 +187,86 @@ const RULES_DONT = [
   "Teks berlebihan menutupi gambar, atau landing page penuh popup/menjebak.",
 ];
 
-type Tab = "istilah" | "cara" | "aturan" | "studi";
+// ── Strategi: Persiapan sebelum beriklan ──
+const STRATEGY_PREP = [
+  { title: "Tetapkan tujuan & KPI bisnis", desc: "Tentukan target nyata sebelum mulai — mis. ROAS minimal 3x atau CPA maksimal Rp50.000. Tanpa target, kamu tidak tahu iklan untung atau rugi." },
+  { title: "Riset audiens & kompetitor", desc: "Pahami pembeli idealmu (usia, lokasi, minat, masalah). Intip iklan kompetitor di Meta Ad Library untuk inspirasi sudut & penawaran." },
+  { title: "Pasang & uji Meta Pixel", desc: "Wajib sebelum iklan konversi. Pastikan event penting (ViewContent, AddToCart, Purchase/Lead) terekam benar agar algoritma bisa belajar." },
+  { title: "Siapkan landing page yang ngebut", desc: "Halaman tujuan harus cepat (<3 detik), mobile-first, dan nyambung dengan isi iklan. Halaman lambat membuang klik yang sudah dibayar." },
+  { title: "Racik penawaran yang kuat", desc: "Offer mengalahkan kreatif. Beri alasan beli sekarang: diskon, bonus, gratis ongkir, garansi, atau batas waktu (urgency)." },
+  { title: "Siapkan 3–5 variasi materi", desc: "Jangan bertaruh pada satu iklan. Siapkan beberapa sudut (hook, testimoni, demo produk) untuk diuji — biarkan data menentukan pemenang." },
+];
+
+// ── Strategi: Tips konten/kreatif yang menjual ──
+const STRATEGY_CONTENT = [
+  { icon: Sparkles, title: "Kunci 3 detik pertama", desc: "Hook di awal menentukan orang lanjut nonton atau scroll. Buka dengan masalah, pertanyaan, atau visual yang bikin berhenti." },
+  { icon: Film, title: "Utamakan format vertikal 9:16", desc: "Reels & Stories mendominasi. Video pendek vertikal dengan teks/subtitle terbaca tanpa suara biasanya paling murah & menjangkau luas." },
+  { icon: Heart, title: "Pakai bukti sosial & UGC", desc: "Testimoni, rating, jumlah terjual, dan konten ala pengguna (UGC) terasa lebih autentik daripada iklan yang terlalu 'jadi'." },
+  { icon: PenTool, title: "Struktur teks: masalah → solusi → CTA", desc: "Sentuh masalah audiens di kalimat pertama, tawarkan solusi (produkmu), tutup dengan satu ajakan jelas seperti 'Belanja Sekarang'." },
+  { icon: Target, title: "Satu iklan, satu pesan, satu CTA", desc: "Jangan menumpuk banyak penawaran. Fokus pada satu benefit utama dan satu aksi yang kamu inginkan." },
+  { icon: Lightbulb, title: "Uji beberapa sudut (angle)", desc: "Coba sudut berbeda: testimoni, demo produk, before-after (jujur), promo, edukasi. Sudut yang menang sering tak terduga." },
+];
+
+// ── Strategi: Goals per tahap funnel ──
+interface FunnelStage {
+  stage: string;
+  temp: string;
+  accent: string;
+  goal: string;
+  objective: string;
+  audience: string;
+  content: string;
+  kpi: string;
+}
+const STRATEGY_FUNNEL: FunnelStage[] = [
+  {
+    stage: "TOFU — Puncak Corong", temp: "Audiens Dingin", accent: "blue",
+    goal: "Dikenal & menjangkau orang baru",
+    objective: "Awareness · Engagement · Video Views",
+    audience: "Minat luas & Lookalike 1–3% dari pelanggan terbaik",
+    content: "Konten hook/edukasi/hiburan. Hindari hard-selling.",
+    kpi: "CPM · CTR · ThruPlay (penonton video)",
+  },
+  {
+    stage: "MOFU — Tengah Corong", temp: "Audiens Hangat", accent: "violet",
+    goal: "Bangun pertimbangan & minat",
+    objective: "Traffic · Engagement",
+    audience: "Retarget: penonton video 50%+, pengunjung IG/FB, pengunjung web",
+    content: "Benefit produk, perbandingan, jawab keberatan, testimoni.",
+    kpi: "CPC · LPV · CVR",
+  },
+  {
+    stage: "BOFU — Dasar Corong", temp: "Audiens Panas", accent: "emerald",
+    goal: "Dorong konversi/penjualan",
+    objective: "Sales · Leads",
+    audience: "Retarget: add-to-cart, pengunjung landing, keranjang ditinggal",
+    content: "Promo + urgency, garansi, testimoni kuat, penawaran terbatas.",
+    kpi: "CPA · ROAS",
+  },
+];
+
+const FUNNEL_ACCENT: Record<string, { dot: string; badge: string; ring: string }> = {
+  blue: { dot: "bg-blue-500", badge: "bg-blue-50 text-blue-600", ring: "border-blue-100" },
+  violet: { dot: "bg-violet-500", badge: "bg-violet-50 text-violet-600", ring: "border-violet-100" },
+  emerald: { dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-600", ring: "border-emerald-100" },
+};
+
+type Tab = "istilah" | "strategi" | "cara" | "aturan" | "studi";
+
+function StrategyRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="text-gray-400 mt-0.5 flex-shrink-0">{icon}</span>
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+        <p className="text-sm text-gray-600 leading-relaxed">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function PanduanPage() {
-  const [tab, setTab] = useState<Tab>("istilah");
+  const [tab, setTab] = useState<Tab>("strategi");
   const [q, setQ] = useState("");
 
   // Kalkulator studi kasus — prefilled dengan angka contoh yang rapi
@@ -245,6 +322,7 @@ export default function PanduanPage() {
   );
 
   const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
+    { id: "strategi", label: "Strategi Iklan Menang", icon: Rocket },
     { id: "istilah", label: "Istilah & Metrik", icon: BookOpen },
     { id: "studi", label: "Studi Kasus & Hitung", icon: CalcIcon },
     { id: "cara", label: "Cara Beriklan yang Benar", icon: Lightbulb },
@@ -286,6 +364,117 @@ export default function PanduanPage() {
           );
         })}
       </div>
+
+      {/* TAB: Strategi */}
+      {tab === "strategi" && (
+        <div className="space-y-6">
+          {/* Intro */}
+          <div className="bg-gradient-to-br from-[#0866FF] to-blue-600 rounded-2xl p-5 sm:p-6 text-white">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                <Rocket className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Strategi agar Iklan Berhasil</h2>
+                <p className="text-sm text-white/85 leading-relaxed mt-1">
+                  Iklan yang bagus bukan soal hoki. Ikuti 3 fondasi ini: <b>persiapan yang matang</b>, <b>konten yang menjual</b>,
+                  dan <b>tujuan yang tepat di tiap tahap funnel</b>. Lakukan berurutan untuk hasil maksimal.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 1. Persiapan */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList className="w-5 h-5 text-[#0866FF]" />
+              <h3 className="text-base font-bold text-[#1c2b33]">1. Persiapan Sebelum Beriklan</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">Selesaikan checklist ini dulu — 80% keberhasilan iklan ditentukan sebelum tombol &ldquo;Publikasikan&rdquo; ditekan.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {STRATEGY_PREP.map((p, i) => (
+                <div key={p.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex gap-4">
+                  <div className="w-8 h-8 rounded-xl bg-[#e7f0ff] text-[#0866FF] font-bold text-sm flex items-center justify-center flex-shrink-0">
+                    {i + 1}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#1c2b33] mb-1">{p.title}</h4>
+                    <p className="text-sm text-gray-500 leading-relaxed">{p.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. Tips Konten */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <PenTool className="w-5 h-5 text-violet-500" />
+              <h3 className="text-base font-bold text-[#1c2b33]">2. Tips Konten yang Menjual</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">Materi (creative) adalah penentu performa terbesar di Meta Ads hari ini. Buat audiens berhenti scroll.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {STRATEGY_CONTENT.map((c) => (
+                <div key={c.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center mb-3">
+                    <c.icon className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-sm font-bold text-[#1c2b33] mb-1">{c.title}</h4>
+                  <p className="text-sm text-gray-500 leading-relaxed">{c.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Goals per funnel */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="w-5 h-5 text-emerald-500" />
+              <h3 className="text-base font-bold text-[#1c2b33]">3. Tujuan (Goals) di Tiap Tahap Funnel</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">Jangan langsung jualan ke orang yang belum kenal. Sesuaikan tujuan, audiens, konten, dan metrik dengan tahap calon pembeli.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {STRATEGY_FUNNEL.map((f) => {
+                const a = FUNNEL_ACCENT[f.accent];
+                return (
+                  <div key={f.stage} className={`bg-white rounded-2xl border ${a.ring} shadow-sm overflow-hidden flex flex-col`}>
+                    <div className="px-5 py-4 border-b border-gray-50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`w-2.5 h-2.5 rounded-full ${a.dot}`} />
+                        <span className="text-sm font-bold text-[#1c2b33]">{f.stage}</span>
+                      </div>
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${a.badge}`}>{f.temp}</span>
+                    </div>
+                    <div className="p-5 space-y-3 text-sm">
+                      <StrategyRow icon={<Flag className="w-3.5 h-3.5" />} label="Tujuan" value={f.goal} />
+                      <StrategyRow icon={<Rocket className="w-3.5 h-3.5" />} label="Objective Meta" value={f.objective} />
+                      <StrategyRow icon={<Target className="w-3.5 h-3.5" />} label="Audiens" value={f.audience} />
+                      <StrategyRow icon={<Sparkles className="w-3.5 h-3.5" />} label="Konten" value={f.content} />
+                      <StrategyRow icon={<TrendingUp className="w-3.5 h-3.5" />} label="Metrik kunci" value={f.kpi} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tip alokasi anggaran + CTA */}
+          <div className="bg-gradient-to-br from-[#e7f0ff] to-blue-50 border border-[#0866FF]/15 rounded-2xl p-5">
+            <p className="text-sm font-bold text-[#1c2b33] mb-1.5">💰 Aturan praktis alokasi anggaran</p>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Untuk pemula, mulai dengan pola <b>70% TOFU · 20% MOFU · 10% BOFU</b>. Seiring audiens hangat & data konversi tumbuh,
+              geser lebih banyak anggaran ke MOFU/BOFU yang ROAS-nya lebih tinggi. Selalu <b>mulai kecil, uji, lalu skala</b> iklan pemenang
+              secara bertahap (20–30% per langkah) dan hormati <b>learning phase</b> (jangan sering edit sebelum ±50 konversi).
+            </p>
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <p className="text-xs text-gray-500">Hitung sendiri CPA, ROAS, & CTR target di tab Studi Kasus.</p>
+              <Link href="/dashboard/ads-manager" className="flex items-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-sm font-semibold px-4 py-2.5 rounded-xl whitespace-nowrap transition-colors">
+                Praktik di Ads Manager <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB: Istilah */}
       {tab === "istilah" && (
