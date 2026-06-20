@@ -30,6 +30,7 @@ function getDestinationType(objective: string, conversionLocation: string): stri
 export default function StepAd({ data, onChange, onPublish, publishing }: Props) {
   const destType = getDestinationType(data.objective, data.conversionLocation);
   const [pages, setPages] = useState<string[]>([]);
+  const [igAccounts, setIgAccounts] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
@@ -44,6 +45,31 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
       })
       .catch(() => setPages(MOCK_PAGES));
   }, []);
+
+  // Akun Instagram diambil dari Business Settings (localStorage AdSimulator_sim_socials)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("AdSimulator_sim_socials");
+      if (raw) {
+        const assets = JSON.parse(raw) as { type: string; name: string }[];
+        const igs = assets.filter((a) => a.type === "instagram").map((a) => a.name);
+        if (igs.length > 0) {
+          setIgAccounts(igs);
+          return;
+        }
+      }
+    } catch {
+      /* abaikan parse error */
+    }
+    setIgAccounts(MOCK_INSTAGRAM);
+  }, []);
+
+  // Pastikan akun yang sedang terpilih (saat edit) tetap muncul di dropdown
+  const igOptions =
+    data.identityInstagram && !igAccounts.includes(data.identityInstagram)
+      ? [data.identityInstagram, ...igAccounts]
+      : igAccounts;
 
   return (
     <div className="flex gap-0 h-full">
@@ -101,7 +127,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
               className="w-full px-3 py-2.5 border border-[#dddfe2] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0866FF]"
             >
               <option value="">Pilih akun Instagram</option>
-              {MOCK_INSTAGRAM.map((i) => <option key={i} value={i}>{i}</option>)}
+              {igOptions.map((i) => <option key={i} value={i}>{i}</option>)}
             </select>
           </div>
         </section>
