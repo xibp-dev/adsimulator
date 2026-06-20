@@ -102,7 +102,7 @@ export default function TraktirModal({ isOpen, onClose, qrisImageUrl }: TraktirM
       />
 
       {/* Modal Container */}
-      <div className="relative bg-white w-full max-w-lg rounded-3xl border border-[#dddfe2] shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white w-full max-w-lg mx-4 max-h-[90vh] overflow-hidden rounded-3xl border border-[#dddfe2] shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Close Button */}
         <button 
           onClick={onClose}
@@ -115,7 +115,7 @@ export default function TraktirModal({ isOpen, onClose, qrisImageUrl }: TraktirM
         {/* Top accent */}
         <div className="h-1.5 bg-gradient-to-r from-emerald-400 via-teal-400 to-[#0866FF]" />
 
-        <div className="p-6 md:p-8 max-h-[85vh] overflow-y-auto">
+        <div className="p-6 md:p-8 max-h-[calc(90vh-6px)] overflow-y-auto">
           {/* Header */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl shadow-lg shadow-emerald-100 mb-3">
@@ -158,7 +158,7 @@ export default function TraktirModal({ isOpen, onClose, qrisImageUrl }: TraktirM
             </label>
 
             {/* Preset buttons */}
-            <div className="grid grid-cols-4 gap-2 mb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
               {PRESETS.map((p) => (
                 <button
                   key={p.value}

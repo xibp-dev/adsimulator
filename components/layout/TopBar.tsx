@@ -41,6 +41,11 @@ export default function TopBar({ userName, accountName, balance, currency = "IDR
         <span className="text-[15px] font-bold text-[#1c2b33] hidden sm:block">AdSimulator</span>
       </div>
 
+      {/* Saldo ringkas — khusus mobile */}
+      <div className="flex md:hidden items-center px-2.5 py-1 bg-gray-50 rounded-lg border border-[#dddfe2]">
+        <span className="text-[#0866FF] font-semibold text-xs whitespace-nowrap">{formatCurrency(balance, currency)}</span>
+      </div>
+
       {/* Account info */}
       <div className="hidden md:flex items-center gap-1 ml-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-[#dddfe2] text-sm">
         <span className="text-[#1c2b33] font-medium truncate max-w-[160px]">{accountName}</span>

@@ -86,7 +86,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       <Link href="/dashboard/ads-manager" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#1c2b33]">
         <ChevronLeft className="w-4 h-4" /> Kembali ke Kampanye
       </Link>
@@ -118,6 +118,8 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
         {adSetsWithMetrics.length === 0 ? (
           <div className="p-10 text-center text-gray-400 text-sm">Belum ada set iklan di kampanye ini.</div>
         ) : (
+          <>
+          <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#f0f2f5] bg-gray-50">
@@ -142,6 +144,34 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               ))}
             </tbody>
           </table>
+          </div>
+
+          {/* Kartu mobile */}
+          <div className="md:hidden p-3 space-y-3">
+            {adSetsWithMetrics.map((a) => (
+              <div key={a.id} className="border border-[#dddfe2] rounded-xl p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-semibold text-[#1c2b33] leading-tight min-w-0 truncate">{a.name}</p>
+                  <StatusBadge status={a.status} />
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-[10px] text-gray-400">Anggaran</p>
+                    <p className="text-sm font-semibold text-[#1c2b33]">{formatCurrency(a.budgetAmount)}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-[10px] text-gray-400">Hasil</p>
+                    <p className="text-sm font-semibold text-[#1c2b33]">{formatNumber(a.m?.results ?? 0)}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-[10px] text-gray-400">Jangkauan</p>
+                    <p className="text-sm font-semibold text-[#1c2b33]">{formatNumber(a.m?.reach ?? 0)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
     </div>

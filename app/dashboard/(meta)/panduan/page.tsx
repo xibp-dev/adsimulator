@@ -252,7 +252,7 @@ export default function PanduanPage() {
   ];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
       {/* Breadcrumb + header */}
       <div>
         <div className="flex items-center gap-2 mb-2">
@@ -301,7 +301,7 @@ export default function PanduanPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filtered.map((t) => (
               <div key={t.abbr} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <div className="flex items-start justify-between gap-2 mb-1">
@@ -429,7 +429,7 @@ export default function PanduanPage() {
               </div>
 
               {/* Hasil */}
-              <div className="grid grid-cols-2 gap-3 content-start">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 content-start">
                 {calcResults.map((r) => (
                   <div key={r.abbr} className="border border-gray-100 rounded-xl p-3 bg-gray-50/50">
                     <p className="text-[11px] font-semibold text-gray-400">{r.abbr}</p>
@@ -454,7 +454,7 @@ export default function PanduanPage() {
 
       {/* TAB: Cara beriklan */}
       {tab === "cara" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {BEST_PRACTICES.map((p, i) => (
             <div key={p.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex gap-4">
               <div className="w-8 h-8 rounded-xl bg-[#0866FF] text-white font-bold text-sm flex items-center justify-center flex-shrink-0">
@@ -466,7 +466,7 @@ export default function PanduanPage() {
               </div>
             </div>
           ))}
-          <div className="md:col-span-2 bg-gradient-to-br from-[#e7f0ff] to-blue-50 border border-[#0866FF]/15 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="lg:col-span-2 bg-gradient-to-br from-[#e7f0ff] to-blue-50 border border-[#0866FF]/15 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <p className="text-sm font-bold text-[#1c2b33]">Siap praktik?</p>
               <p className="text-xs text-gray-500 mt-0.5">Terapkan langsung dengan membuat kampanye di Ads Manager.</p>

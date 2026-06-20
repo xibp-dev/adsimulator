@@ -77,8 +77,8 @@ function AdPreviewModal({ ad, onClose }: { ad: Ad; onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2]">
           <h2 className="font-semibold text-[#1c2b33] text-sm">Preview Iklan</h2>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X className="w-4 h-4" />
@@ -148,7 +148,7 @@ function DeleteConfirmModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onCancel}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-semibold text-[#1c2b33] text-base mb-2">Hapus item?</h2>
         <p className="text-sm text-gray-600 mb-5">
           Yakin hapus <span className="font-semibold text-[#1c2b33]">{name}</span>? Tindakan ini tidak bisa dibatalkan.
@@ -213,8 +213,8 @@ function EditCampaignModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2]">
           <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Kampanye</h2>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
         </div>
@@ -309,8 +309,8 @@ function EditAdSetModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2]">
           <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Set Iklan</h2>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
         </div>
@@ -421,8 +421,8 @@ function EditAdModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dddfe2] sticky top-0 bg-white">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2] sticky top-0 bg-white">
           <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Iklan</h2>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
         </div>
@@ -606,7 +606,7 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
   const currentBulkName = `${selected.size} item yang dipilih`;
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-[#1c2b33]">Kelola Iklan</h1>
@@ -667,13 +667,14 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
         </div>
       </div>
 
-      {/* Tables */}
-      <div className="bg-white rounded-xl border border-[#dddfe2] overflow-x-auto">
+      {/* Tables (desktop) + Cards (mobile) */}
+      <div className="bg-white rounded-xl border border-[#dddfe2] md:overflow-x-auto">
         {loading ? (
           <div className="flex items-center justify-center py-20 text-gray-400 text-sm">Memuat data…</div>
         ) : activeTab === "campaigns" ? (
           /* ── KAMPANYE ── */
-          <table className="w-full text-sm">
+          <>
+          <table className="w-full text-sm hidden md:table">
             <thead>
               <tr className="border-b border-[#dddfe2] bg-gray-50">
                 <th className="w-10 px-3 py-3">
@@ -737,14 +738,14 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
                         <div className="flex items-center gap-1 justify-end">
                           <button
                             onClick={() => router.push(`/dashboard/campaigns/${campaign.id}/edit`)}
-                            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
+                            className="p-2 md:p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
                             title="Edit"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteTarget({ id: campaign.id, name: campaign.name, type: "campaigns" })}
-                            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
+                            className="p-2 md:p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
                             title="Hapus"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -770,9 +771,74 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
               </tfoot>
             )}
           </table>
+
+          {/* ── KAMPANYE: kartu mobile ── */}
+          <div className="md:hidden p-3">
+            {campaigns.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 text-gray-400 py-12">
+                <TrendingUp className="w-10 h-10" />
+                <p className="font-medium text-[#1c2b33]">Belum ada kampanye</p>
+                <Link href="/dashboard/create" className="mt-1 flex items-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                  <Plus className="w-4 h-4" /> Buat kampanye
+                </Link>
+              </div>
+            ) : (
+              campaigns.map((campaign) => {
+                const metrics = getLatestMetrics(campaign);
+                const objInfo = OBJECTIVE_INFO[campaign.objective as CampaignObjective];
+                return (
+                  <div key={campaign.id} className="bg-white border border-[#dddfe2] rounded-xl p-4 mb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link href={`/dashboard/campaigns/${campaign.id}`} className="min-w-0 flex-1">
+                        <p className="font-semibold text-[#1c2b33] leading-tight truncate">{campaign.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{objInfo?.label} · {campaign._count.adSets} set iklan</p>
+                      </Link>
+                      <StatusToggle entityId={campaign.id} entityType="campaign" isActive={campaign.status === "ACTIVE"} />
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <StatusBadge status={campaign.status} />
+                      <span className="text-xs text-gray-500">
+                        {formatCurrency(campaign.budgetAmount)} / {campaign.budgetType === "DAILY" ? "hari" : "seumur hidup"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      <div className="bg-gray-50 rounded-lg p-2">
+                        <p className="text-[10px] text-gray-400">Hasil</p>
+                        <p className="text-sm font-semibold text-[#1c2b33]">{formatNumber(metrics.results)}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2">
+                        <p className="text-[10px] text-gray-400">Jangkauan</p>
+                        <p className="text-sm font-semibold text-[#1c2b33]">{formatNumber(metrics.reach)}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2">
+                        <p className="text-[10px] text-gray-400">Dibelanjakan</p>
+                        <p className="text-sm font-semibold text-[#1c2b33]">{formatCurrency(metrics.amountSpent)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => router.push(`/dashboard/campaigns/${campaign.id}/edit`)}
+                        className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg border border-[#dddfe2] text-sm text-[#1c2b33] hover:bg-gray-50"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget({ id: campaign.id, name: campaign.name, type: "campaigns" })}
+                        className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg border border-[#dddfe2] text-sm text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Hapus
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          </>
         ) : activeTab === "adsets" ? (
           /* ── SET IKLAN ── */
-          <table className="w-full text-sm">
+          <>
+          <table className="w-full text-sm hidden md:table">
             <thead>
               <tr className="border-b border-[#dddfe2] bg-gray-50">
                 <th className="w-10 px-3 py-3">
@@ -813,14 +879,14 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
                       <div className="flex items-center gap-1 justify-end">
                         <button
                           onClick={() => router.push(`/dashboard/adsets/${a.id}/edit`)}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
+                          className="p-2 md:p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
                           title="Edit"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleteTarget({ id: a.id, name: a.name, type: "adsets" })}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
+                          className="p-2 md:p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
                           title="Hapus"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -832,9 +898,53 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
               )}
             </tbody>
           </table>
+
+          {/* ── SET IKLAN: kartu mobile ── */}
+          <div className="md:hidden p-3">
+            {adSets.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 text-sm">Belum ada set iklan.</div>
+            ) : (
+              adSets.map((a) => (
+                <div key={a.id} className="bg-white border border-[#dddfe2] rounded-xl p-4 mb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-[#1c2b33] leading-tight truncate">{a.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{a.campaignName}</p>
+                    </div>
+                    <StatusToggle entityId={a.id} entityType="adset" isActive={a.status === "ACTIVE"} />
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <StatusBadge status={a.status} />
+                    <span className="text-xs text-gray-500">
+                      {formatCurrency(a.budgetAmount)} / {a.budgetType === "DAILY" ? "hari" : "seumur hidup"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Mulai: {a.scheduleStart ? new Date(a.scheduleStart).toLocaleDateString("id-ID") : "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => router.push(`/dashboard/adsets/${a.id}/edit`)}
+                      className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg border border-[#dddfe2] text-sm text-[#1c2b33] hover:bg-gray-50"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget({ id: a.id, name: a.name, type: "adsets" })}
+                      className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg border border-[#dddfe2] text-sm text-red-500 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          </>
         ) : (
           /* ── IKLAN ── */
-          <table className="w-full text-sm">
+          <>
+          <table className="w-full text-sm hidden md:table">
             <thead>
               <tr className="border-b border-[#dddfe2] bg-gray-50">
                 <th className="w-10 px-3 py-3">
@@ -888,14 +998,14 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
                       <div className="flex items-center gap-1 justify-end">
                         <button
                           onClick={() => router.push(`/dashboard/ads/${ad.id}/edit`)}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
+                          className="p-2 md:p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-[#0866FF]"
                           title="Edit"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleteTarget({ id: ad.id, name: ad.name, type: "ads" })}
-                          className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
+                          className="p-2 md:p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-red-500"
                           title="Hapus"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -907,6 +1017,53 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
               )}
             </tbody>
           </table>
+
+          {/* ── IKLAN: kartu mobile ── */}
+          <div className="md:hidden p-3">
+            {ads.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 text-sm">Belum ada iklan.</div>
+            ) : (
+              ads.map((ad) => (
+                <div key={ad.id} className="bg-white border border-[#dddfe2] rounded-xl p-4 mb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-[#1c2b33] leading-tight truncate">{ad.name}</p>
+                      {ad.headline && <p className="text-xs text-gray-400 mt-0.5 truncate">{ad.headline}</p>}
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{ad.adSetName}</p>
+                    </div>
+                    <StatusToggle entityId={ad.id} entityType="ad" isActive={ad.status === "ACTIVE"} />
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <StatusBadge status={ad.status} />
+                    <span className="text-xs text-gray-500">
+                      {ad.format === "SINGLE_IMAGE_VIDEO" ? "Single" : ad.format === "CAROUSEL" ? "Carousel" : "Koleksi"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => setPreviewAd(ad)}
+                      className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#e7f0ff] text-[#0866FF] text-sm font-semibold hover:bg-[#d0e4ff]"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> Preview
+                    </button>
+                    <button
+                      onClick={() => router.push(`/dashboard/ads/${ad.id}/edit`)}
+                      className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg border border-[#dddfe2] text-sm text-[#1c2b33] hover:bg-gray-50"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget({ id: ad.id, name: ad.name, type: "ads" })}
+                      className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg border border-[#dddfe2] text-sm text-red-500 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          </>
         )}
       </div>
 

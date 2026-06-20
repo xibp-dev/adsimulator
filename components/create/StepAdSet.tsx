@@ -84,7 +84,7 @@ export default function StepAdSet({ data, onChange, onNext }: Props) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-6">
+    <div className="max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-6">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-xl font-bold text-[#1c2b33]">Pengaturan set iklan</h2>
         <span className="text-xs text-gray-400">Level set iklan</span>
@@ -164,7 +164,7 @@ export default function StepAdSet({ data, onChange, onNext }: Props) {
             </div>
 
             {showPixel && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-[#1c2b33] mb-1.5">
                     Set data (Pixel) {pixelRequired && <span className="text-red-500">*</span>}

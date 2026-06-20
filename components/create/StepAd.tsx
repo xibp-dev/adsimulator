@@ -48,7 +48,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
   return (
     <div className="flex gap-0 h-full">
       {/* ── Form (left) ── */}
-      <div className={`${showPreview ? "w-full lg:w-[55%]" : "w-full max-w-2xl mx-auto"} px-6 py-6 overflow-y-auto`}>
+      <div className={`${showPreview ? "w-full lg:w-[55%]" : "w-full max-w-2xl mx-auto"} px-4 md:px-6 py-4 md:py-6 overflow-y-auto`}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl font-bold text-[#1c2b33]">Pengaturan iklan</h2>
           <div className="flex items-center gap-2">
@@ -131,7 +131,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
         {/* Format */}
         <section className="bg-white rounded-xl border border-[#dddfe2] p-5">
           <h3 className="font-semibold text-sm text-[#1c2b33] mb-3">Format</h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
               { value: "SINGLE_IMAGE_VIDEO", label: "Gambar atau video tunggal" },
               { value: "CAROUSEL", label: "Carousel" },
@@ -145,7 +145,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
                     mediaUrls: [],
                   });
                 }}
-                className={`p-3 rounded-lg border text-sm font-medium text-center transition-colors ${
+                className={`p-3 rounded-lg border text-xs sm:text-sm font-medium text-center transition-colors ${
                   data.format === f.value ? "border-[#0866FF] bg-[#e7f0ff] text-[#0866FF]" : "border-[#dddfe2] text-[#1c2b33] hover:bg-gray-50"
                 }`}
               >
@@ -334,7 +334,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
               </div>
               {/* Produk 1–3 */}
               <label className="text-xs font-semibold text-gray-500 block">Gambar Produk (min. 3)</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[1, 2, 3].map((n) => (
                   <div key={n} className="space-y-1">
                     <input
@@ -371,7 +371,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
               value={data.primaryText}
               onChange={(e) => onChange({ primaryText: e.target.value })}
               placeholder="Beri tahu orang tentang iklan Anda..."
-              rows={3}
+              rows={4}
               className="w-full px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF] resize-none"
             />
           </div>

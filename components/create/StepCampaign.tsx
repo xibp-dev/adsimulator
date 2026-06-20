@@ -31,7 +31,7 @@ export default function StepCampaign({ data, onChange, onNext }: Props) {
   const objInfo = OBJECTIVE_INFO[data.objective];
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-6">
+    <div className="max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-6">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-xl font-bold text-[#1c2b33]">Pengaturan kampanye</h2>
         <span className="text-xs text-gray-400">Level kampanye</span>

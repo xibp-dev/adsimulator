@@ -236,7 +236,7 @@ export default function LandingPagesBuilder() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-[#dddfe2]">
         <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function LandingPagesBuilder() {
           </div>
 
           <form onSubmit={handleCreateOrUpdate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column: Page Content */}
               <div className="space-y-4">
                 <div className="space-y-1">
@@ -454,7 +454,7 @@ export default function LandingPagesBuilder() {
 
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-600 uppercase">Pilih Gambar Produk/Latar</label>
-                  <div className="grid grid-cols-4 gap-2 mb-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
                     {DEFAULT_IMAGES.map((img, index) => (
                       <button
                         key={index}

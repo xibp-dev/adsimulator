@@ -101,7 +101,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Lab Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {labs.map((lab) => (
             <div
               key={lab.id}

@@ -325,36 +325,45 @@ export default function CreateCampaignFlow({
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#f0f2f5]">
       {/* ===== Top toolbar ===== */}
-      <header className="flex items-center justify-between bg-white border-b border-[#dddfe2] px-4 h-12 flex-shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="flex items-center justify-between bg-white border-b border-[#dddfe2] px-3 md:px-4 h-12 flex-shrink-0 gap-2">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <button
             onClick={() => router.push(isEdit ? "/dashboard/ads-manager" : "/dashboard")}
             className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-[#1c2b33] px-2 py-1 rounded-lg hover:bg-gray-100"
           >
             <X className="w-4 h-4" /> {isEdit ? "Batal" : "Tutup"}
           </button>
-          <div className="h-5 w-px bg-gray-200" />
-          <span className="text-sm font-semibold text-[#1c2b33]">{isEdit ? editTitle : "Buat kampanye"}</span>
+          <div className="h-5 w-px bg-gray-200 hidden sm:block" />
+          <span className="text-sm font-semibold text-[#1c2b33] truncate">{isEdit ? editTitle : "Buat kampanye"}</span>
           <span className="hidden sm:inline-flex items-center gap-1 text-xs text-gray-400">
             <ChevronRight className="w-3 h-3" /> {objLabel}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
           <button
             onClick={() => router.push(isEdit ? "/dashboard/ads-manager" : "/dashboard")}
-            className="px-3 py-1.5 text-sm font-semibold text-[#1c2b33] hover:bg-gray-100 rounded-lg"
+            className="hidden sm:block px-3 py-1.5 text-sm font-semibold text-[#1c2b33] hover:bg-gray-100 rounded-lg"
           >
             {isEdit ? "Batal" : "Buang draf"}
           </button>
           <button
             onClick={saveAction}
             disabled={saveDisabled}
-            className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold bg-[#0866FF] hover:bg-[#0757d4] disabled:opacity-50 text-white rounded-lg"
+            className="flex items-center gap-2 px-3 md:px-4 py-1.5 text-sm font-semibold bg-[#0866FF] hover:bg-[#0757d4] disabled:opacity-50 text-white rounded-lg whitespace-nowrap"
           >
             {publishing && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isEdit
-              ? (publishing ? "Menyimpan..." : "Simpan perubahan")
-              : (publishing ? "Memublikasikan..." : "Publikasikan")}
+            {/* Mobile: ringkas */}
+            <span className="sm:hidden">
+              {isEdit
+                ? (publishing ? "Menyimpan..." : "Simpan")
+                : (publishing ? "Memublikasi..." : "Publikasi")}
+            </span>
+            {/* Desktop: lengkap */}
+            <span className="hidden sm:inline">
+              {isEdit
+                ? (publishing ? "Menyimpan..." : "Simpan perubahan")
+                : (publishing ? "Memublikasikan..." : "Publikasikan")}
+            </span>
           </button>
         </div>
       </header>
