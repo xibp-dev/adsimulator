@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { 
   ShoppingCart, 
@@ -77,7 +77,7 @@ function extractPixelId(code: string): string | null {
   return null;
 }
 
-export default function CustomLandingPage() {
+function LandingContent() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
@@ -778,5 +778,13 @@ export default function CustomLandingPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CustomLandingPage() {
+  return (
+    <Suspense fallback={null}>
+      <LandingContent />
+    </Suspense>
   );
 }

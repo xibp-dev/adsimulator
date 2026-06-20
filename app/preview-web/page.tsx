@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ShoppingCart, Star, ShieldCheck, Truck } from "lucide-react";
 import Link from "next/link";
 
-export default function PreviewWebPage() {
+function PreviewWebContent() {
   const searchParams = useSearchParams();
   const pixelId = searchParams.get("pixelId");
   
@@ -155,5 +155,13 @@ export default function PreviewWebPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function PreviewWebPage() {
+  return (
+    <Suspense fallback={null}>
+      <PreviewWebContent />
+    </Suspense>
   );
 }
