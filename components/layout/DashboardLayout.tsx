@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import TopBar from "./TopBar";
 import Sidebar from "./Sidebar";
 import Link from "next/link";
-import { Coffee } from "lucide-react";
 import TraktirModal from "../ui/TraktirModal";
+import DraggableTraktir from "../ui/DraggableTraktir";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -70,17 +70,8 @@ export default function DashboardLayout({ children, userName, accountName, balan
         </main>
       </div>
 
-      {/* Floating Sticky Traktir Badge (Middle Right) */}
-      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-40">
-        <button
-          onClick={() => setIsTraktirOpen(true)}
-          className="flex items-center gap-2 bg-[#0866FF] hover:bg-[#0757d4] text-white px-4 py-3 rounded-l-2xl shadow-xl hover:-translate-x-1.5 transition-all duration-200 font-semibold text-xs tracking-wide cursor-pointer"
-          style={{ boxShadow: "0 10px 25px -5px rgba(8, 102, 255, 0.4)" }}
-        >
-          <Coffee className="w-4 h-4 fill-white/10 animate-bounce" />
-          <span className="writing-mode-vertical">Traktir Kopi ☕</span>
-        </button>
-      </div>
+      {/* Floating Draggable Traktir Badge — bisa digeser ke mana saja */}
+      <DraggableTraktir onClick={() => setIsTraktirOpen(true)} />
 
       {/* Traktir Modal Component */}
       <TraktirModal
