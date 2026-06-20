@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Suspense, useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
@@ -121,10 +121,13 @@ function LoginForm() {
         </div>
 
         <div className="mt-6 pt-6 border-t border-[#dddfe2]">
-          <p className="text-xs text-gray-400 text-center mb-2">Akun demo:</p>
-          <div className="text-xs text-gray-500 space-y-1 text-center">
-            <p>Admin: <span className="font-mono">meremember6@gmail.com</span> / <span className="font-mono">admin123</span></p>
-          </div>
+          <p className="text-xs text-gray-400 text-center">
+            &copy; {new Date().getFullYear()}{" "}
+            <a href="https://mbp.web.id" target="_blank" rel="noopener noreferrer" className="hover:text-[#0866FF] transition-colors">
+              Muhamad Bilal Pangestu
+            </a>
+            . All rights reserved.
+          </p>
         </div>
       </div>
     </div>

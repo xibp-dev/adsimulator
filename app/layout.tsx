@@ -59,6 +59,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
 
     category: "education",
+
+    verification: {
+      google: "oxbRS09d7RU4FvsFCv8-jNqR1VcpqNUWsxeKZ4CAIHQ",
+    },
   };
 }
 
