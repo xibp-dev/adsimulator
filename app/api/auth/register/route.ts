@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const { name, email, password } = parsed.data;
 
     // Check if user exists
-    const { data: existingUser } = await supabase
+    const { data: existingUser } = await supabaseAdmin
       .from("User")
       .select("id")
       .eq("email", email)
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Insert User
-    const { data: newUser, error: userError } = await supabase
+    const { data: newUser, error: userError } = await supabaseAdmin
       .from("User")
       .insert({
         id: userId,
@@ -45,8 +45,7 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role: "USER",
         status: "ACTIVE",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: new Date().toISOString()
       })
       .select()
       .single();
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (userError) throw userError;
 
     // Create Initial Ad Account for the user
-    const { error: accountError } = await supabase
+    const { error: accountError } = await supabaseAdmin
       .from("AdAccount")
       .insert({
         id: randomUUID(),
@@ -62,8 +61,7 @@ export async function POST(req: NextRequest) {
         name: `Ad Account - ${name}`,
         currency: "IDR",
         balance: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: new Date().toISOString()
       });
 
     if (accountError) throw accountError;

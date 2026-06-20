@@ -163,4 +163,22 @@ model Preset {
   updatedAt DateTime @updatedAt
 }
 
+model LandingPage {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  pixelCode     String   @default("")
+  template      String   @default("ecommerce")
+  title         String
+  headline      String
+  description   String
+  price         String   @default("0")
+  ctaText       String
+  buttonEvent   String   @default("Purchase")
+  imageUrl      String   @default("")
+  trackingRules String   @default("[]") // JSON array
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 

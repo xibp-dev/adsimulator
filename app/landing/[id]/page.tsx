@@ -103,24 +103,24 @@ function LandingContent() {
   const [leadName, setLeadName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
 
-  // Load configuration from localStorage
+  // Load configuration from API
   useEffect(() => {
-    if (typeof window !== "undefined" && id) {
-      const stored = localStorage.getItem("metalabs_landing_pages");
-      if (stored) {
-        try {
-          const pages: LandingPageConfig[] = JSON.parse(stored);
-          const found = pages.find(p => p.id === id);
-          if (found) {
-            setConfig(found);
-            setTrackingRules(found.trackingRules || []);
-          }
-        } catch (e) {
-          console.error("Failed to parse landing pages from localStorage", e);
+    if (!id) return;
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch(`/api/landing-pages/public/${id}`);
+        if (res.ok) {
+          const data: LandingPageConfig = await res.json();
+          setConfig(data);
+          setTrackingRules(data.trackingRules || []);
         }
+      } catch (e) {
+        console.error("Failed to fetch landing page", e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
+    };
+    fetchConfig();
   }, [id]);
 
   const pixelId = config ? extractPixelId(config.pixelCode) : null;
@@ -207,24 +207,17 @@ function LandingContent() {
   };
 
   // Handle Event Setup Tool Save
-  const saveTrackingRules = (updatedRules: TrackingRule[]) => {
-    if (typeof window !== "undefined" && config) {
-      const stored = localStorage.getItem("metalabs_landing_pages");
-      if (stored) {
-        try {
-          const pages: LandingPageConfig[] = JSON.parse(stored);
-          const updatedPages = pages.map(p => {
-            if (p.id === config.id) {
-              return { ...p, trackingRules: updatedRules };
-            }
-            return p;
-          });
-          localStorage.setItem("metalabs_landing_pages", JSON.stringify(updatedPages));
-          setTrackingRules(updatedRules);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+  const saveTrackingRules = async (updatedRules: TrackingRule[]) => {
+    if (!config) return;
+    try {
+      await fetch(`/api/landing-pages/${config.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackingRules: updatedRules }),
+      });
+      setTrackingRules(updatedRules);
+    } catch (e) {
+      console.error(e);
     }
   };
 

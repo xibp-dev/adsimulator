@@ -81,6 +81,7 @@ export default function LandingPagesBuilder() {
   const [pixels, setPixels] = useState<Pixel[]>([]);
   const [pages, setPages] = useState<LandingPageConfig[]>([]);
   const [fetchingPixels, setFetchingPixels] = useState(true);
+  const [fetchingPages, setFetchingPages] = useState(true);
 
   // Form states
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -115,26 +116,25 @@ export default function LandingPagesBuilder() {
     fetchPixels();
   }, []);
 
-  // Load Custom Pages from localStorage
+  // Load pages from API
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("metalabs_landing_pages");
-      if (stored) {
-        try {
-          setPages(JSON.parse(stored));
-        } catch (e) {
-          console.error(e);
+    const fetchPages = async () => {
+      try {
+        const res = await fetch("/api/landing-pages");
+        if (res.ok) {
+          const data = await res.json();
+          setPages(data);
         }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setFetchingPages(false);
       }
-    }
+    };
+    fetchPages();
   }, []);
 
-  const savePagesToLocalStorage = (updatedPages: LandingPageConfig[]) => {
-    localStorage.setItem("metalabs_landing_pages", JSON.stringify(updatedPages));
-    setPages(updatedPages);
-  };
-
-  const handleCreateOrUpdate = (e: React.FormEvent) => {
+  const handleCreateOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const extractedId = extractPixelId(pixelCode);
@@ -149,43 +149,34 @@ export default function LandingPagesBuilder() {
       return;
     }
 
-    if (editingId) {
-      const updated = pages.map(p => {
-        if (p.id === editingId) {
-          return {
-            ...p,
-            name,
-            pixelCode,
-            template,
-            title,
-            headline,
-            description,
-            price,
-            ctaText,
-            buttonEvent: finalButtonEvent,
-            imageUrl,
-          };
+    const payload = { name, pixelCode, template, title, headline, description, price, ctaText, buttonEvent: finalButtonEvent, imageUrl, trackingRules: [] };
+
+    try {
+      if (editingId) {
+        const res = await fetch(`/api/landing-pages/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setPages(prev => prev.map(p => p.id === editingId ? updated : p));
         }
-        return p;
-      });
-      savePagesToLocalStorage(updated);
-      setEditingId(null);
-    } else {
-      const newPage: LandingPageConfig = {
-        id: Math.random().toString(36).substring(2, 9),
-        name,
-        pixelCode,
-        template,
-        title,
-        headline,
-        description,
-        price,
-        ctaText,
-        buttonEvent: finalButtonEvent,
-        imageUrl,
-        createdAt: new Date().toISOString(),
-      };
-      savePagesToLocalStorage([newPage, ...pages]);
+      } else {
+        const res = await fetch("/api/landing-pages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setPages(prev => [created, ...prev]);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan. Coba lagi.");
+      return;
     }
 
     resetForm();
@@ -232,10 +223,15 @@ export default function LandingPagesBuilder() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus landing page ini?")) {
-      const updated = pages.filter(p => p.id !== id);
-      savePagesToLocalStorage(updated);
+  const handleDelete = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus landing page ini?")) return;
+    try {
+      const res = await fetch(`/api/landing-pages/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setPages(prev => prev.filter(p => p.id !== id));
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -508,7 +504,11 @@ export default function LandingPagesBuilder() {
           Daftar Landing Page Anda ({pages.length})
         </h2>
 
-        {pages.length === 0 ? (
+        {fetchingPages ? (
+          <div className="text-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mx-auto" />
+          </div>
+        ) : pages.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
             <Globe className="w-10 h-10 text-gray-300 mx-auto mb-2" />
             <p className="text-sm text-gray-500 font-medium">Belum ada Landing Page kustom.</p>

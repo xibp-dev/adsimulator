@@ -7,6 +7,9 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnon
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Missing Supabase credentials in .env");
 }
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn("SUPABASE_SERVICE_ROLE_KEY not set — supabaseAdmin will use anon key and may be blocked by RLS");
+}
 
 // Client publik (pakai anon key)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
