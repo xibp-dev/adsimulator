@@ -264,12 +264,6 @@ export default async function HomePage() {
             </div>
             <div className="flex items-center gap-3">
               <Link
-                href="/login"
-                className="text-sm text-gray-600 hover:text-[#0866FF] transition-colors font-medium"
-              >
-                Masuk
-              </Link>
-              <Link
                 href="/register"
                 className="text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white font-semibold px-4 py-2 rounded-lg transition-colors"
               >
