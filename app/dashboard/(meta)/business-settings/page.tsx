@@ -26,7 +26,6 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 
 // Local SVG component for Instagram logo to bypass older package exports
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -120,12 +119,12 @@ export default function BusinessSettingsPage() {
   // Load Data
   const loadData = async () => {
     try {
-      // Semua fetch dijalankan PARALEL (sebelumnya berurutan)
-      const [resPortfolio, pagesRes, pxsRes, accRes] = await Promise.all([
+      // Semua fetch dijalankan PARALEL lewat API server ber-auth & difilter userId
+      const [resPortfolio, resPages, resPixels, resAccount] = await Promise.all([
         fetch("/api/portfolio"),
-        supabase.from("Fanspage").select("*"),
-        supabase.from("Pixel").select("*"),
-        supabase.from("AdAccount").select("*").single(),
+        fetch("/api/pages"),
+        fetch("/api/pixels"),
+        fetch("/api/account"),
       ]);
 
       if (resPortfolio.ok) {
@@ -135,9 +134,18 @@ export default function BusinessSettingsPage() {
           setActivePortfolio(data[0]);
         }
       }
-      if (pagesRes.data) setFanspages(pagesRes.data);
-      if (pxsRes.data) setPixels(pxsRes.data);
-      if (accRes.data) setAdAccount(accRes.data);
+      if (resPages.ok) {
+        const data = await resPages.json();
+        if (Array.isArray(data)) setFanspages(data);
+      }
+      if (resPixels.ok) {
+        const data = await resPixels.json();
+        if (Array.isArray(data)) setPixels(data);
+      }
+      if (resAccount.ok) {
+        const data = await resAccount.json();
+        setAdAccount(data ?? null);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -189,10 +197,22 @@ export default function BusinessSettingsPage() {
 
     initUsers();
 
-    if (typeof window !== "undefined") {
-      const assets = localStorage.getItem("AdSimulator_sim_socials");
-      if (assets) setSocialAssets(JSON.parse(assets));
+    // Muat akun sosial dari DB (bukan localStorage)
+    const loadSocials = async () => {
+      try {
+        const res = await fetch("/api/social-accounts");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setSocialAssets(data);
+        }
+      } catch (e) {
+        console.error("Failed to load social accounts", e);
+      }
+    };
 
+    loadSocials();
+
+    if (typeof window !== "undefined") {
       const verified = localStorage.getItem("AdSimulator_sim_verified");
       if (verified) setBusinessVerified(JSON.parse(verified));
     }
@@ -247,29 +267,36 @@ export default function BusinessSettingsPage() {
     setSystemUsers(updated);
   };
 
-  const handleAddSocial = (e: React.FormEvent) => {
+  const handleAddSocial = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSocialName) return;
 
-    const newAsset: SocialAsset = {
-      id: Math.random().toString(36).substring(2, 9),
-      type: socialType,
-      name: socialType === "instagram" 
-        ? (newSocialName.startsWith("@") ? newSocialName : "@" + newSocialName)
-        : newSocialName,
-      status: "Terkoneksi"
-    };
-
-    const updated = [...socialAssets, newAsset];
-    localStorage.setItem("AdSimulator_sim_socials", JSON.stringify(updated));
-    setSocialAssets(updated);
-    setNewSocialName("");
+    try {
+      // Normalisasi "@" dilakukan di server, jadi kirim name apa adanya
+      const res = await fetch("/api/social-accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: socialType, name: newSocialName }),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setSocialAssets([...socialAssets, created]);
+        setNewSocialName("");
+      }
+    } catch (err) {
+      console.error("Failed to add social account", err);
+    }
   };
 
-  const handleDeleteSocial = (assetId: string) => {
-    const updated = socialAssets.filter(a => a.id !== assetId);
-    localStorage.setItem("AdSimulator_sim_socials", JSON.stringify(updated));
-    setSocialAssets(updated);
+  const handleDeleteSocial = async (assetId: string) => {
+    try {
+      const res = await fetch(`/api/social-accounts/${assetId}`, { method: "DELETE" });
+      if (res.ok) {
+        setSocialAssets(socialAssets.filter(a => a.id !== assetId));
+      }
+    } catch (err) {
+      console.error("Failed to delete social account", err);
+    }
   };
 
   const handleVerifyBusiness = () => {

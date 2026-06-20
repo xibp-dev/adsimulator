@@ -46,23 +46,23 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
       .catch(() => setPages(MOCK_PAGES));
   }, []);
 
-  // Akun Instagram diambil dari Business Settings (localStorage AdSimulator_sim_socials)
+  // Akun Instagram diambil dari Business Settings (DB via /api/social-accounts)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem("AdSimulator_sim_socials");
-      if (raw) {
-        const assets = JSON.parse(raw) as { type: string; name: string }[];
-        const igs = assets.filter((a) => a.type === "instagram").map((a) => a.name);
-        if (igs.length > 0) {
-          setIgAccounts(igs);
-          return;
+    fetch("/api/social-accounts")
+      .then((res) => res.json())
+      .then((assets) => {
+        if (Array.isArray(assets)) {
+          const igs = assets
+            .filter((a: { type: string; name: string }) => a.type === "instagram")
+            .map((a: { type: string; name: string }) => a.name);
+          if (igs.length > 0) {
+            setIgAccounts(igs);
+            return;
+          }
         }
-      }
-    } catch {
-      /* abaikan parse error */
-    }
-    setIgAccounts(MOCK_INSTAGRAM);
+        setIgAccounts(MOCK_INSTAGRAM);
+      })
+      .catch(() => setIgAccounts(MOCK_INSTAGRAM));
   }, []);
 
   // Pastikan akun yang sedang terpilih (saat edit) tetap muncul di dropdown
