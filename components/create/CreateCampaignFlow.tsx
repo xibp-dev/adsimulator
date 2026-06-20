@@ -312,7 +312,7 @@ export default function CreateCampaignFlow() {
         </aside>
 
         {/* ---- Center: form ---- */}
-        <main className="flex-1 overflow-y-auto bg-[#f0f2f5]">
+        <main className={`flex-1 overflow-y-auto bg-[#f0f2f5] ${level === "ad" ? "overflow-hidden" : ""}`}>
           {/* Mobile level tabs */}
           <div className="md:hidden flex border-b border-[#dddfe2] bg-white sticky top-0 z-10">
             {([["campaign", "Kampanye"], ["adset", "Set Iklan"], ["ad", "Iklan"]] as const).map(([lv, lb]) => (
@@ -339,10 +339,12 @@ export default function CreateCampaignFlow() {
           )}
         </main>
 
-        {/* ---- Right: contextual panel ---- */}
-        <aside className="w-80 flex-shrink-0 bg-white border-l border-[#dddfe2] overflow-y-auto hidden lg:block">
-          <RightPanel level={level} data={data} />
-        </aside>
+        {/* ---- Right panel: hidden on ad step (preview is built-in) ---- */}
+        {level !== "ad" && (
+          <aside className="w-80 flex-shrink-0 bg-white border-l border-[#dddfe2] overflow-y-auto hidden lg:block">
+            <RightPanel level={level} data={data} />
+          </aside>
+        )}
       </div>
     </div>
   );

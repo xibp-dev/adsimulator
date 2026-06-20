@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { CampaignFormData } from "./CreateCampaignFlow";
 import { MOCK_PAGES, MOCK_INSTAGRAM, CTA_OPTIONS, MOCK_INSTANT_FORMS } from "@/lib/mockData";
 import { CTA } from "@/types";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { ImagePlus, Loader2, Eye } from "lucide-react";
+import AdPreviewPanel from "./AdPreviewPanel";
 
 interface Props {
   data: CampaignFormData;
@@ -29,6 +30,7 @@ function getDestinationType(objective: string, conversionLocation: string): stri
 export default function StepAd({ data, onChange, onPublish, publishing }: Props) {
   const destType = getDestinationType(data.objective, data.conversionLocation);
   const [pages, setPages] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
     fetch("/api/pages")
@@ -44,12 +46,25 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-6">
-      <div className="flex items-center justify-between mb-1">
-        <h2 className="text-xl font-bold text-[#1c2b33]">Pengaturan iklan</h2>
-        <span className="text-xs text-gray-400">Level iklan</span>
-      </div>
-      <p className="text-sm text-gray-500 mb-6">Buat tampilan iklan yang dilihat audiens Anda.</p>
+    <div className="flex gap-0 h-full">
+      {/* ── Form (left) ── */}
+      <div className={`${showPreview ? "w-full lg:w-[55%]" : "w-full max-w-2xl mx-auto"} px-6 py-6 overflow-y-auto`}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-xl font-bold text-[#1c2b33]">Pengaturan iklan</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">Level iklan</span>
+            <button
+              onClick={() => setShowPreview((v) => !v)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                showPreview ? "bg-[#0866FF] text-white border-[#0866FF]" : "bg-white text-gray-600 border-gray-200 hover:border-[#0866FF]"
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Preview
+            </button>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mb-6">Buat tampilan iklan yang dilihat audiens Anda.</p>
 
       <div className="space-y-5">
         {/* Nama iklan */}
@@ -319,6 +334,18 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
           {publishing ? "Memublikasikan..." : "Publikasikan"}
         </button>
       </div>
+      </div>{/* end form scroll container */}
+    </div>{/* end left column */}
+
+      {/* ── Preview (right) ── */}
+      {showPreview && (
+        <div className="hidden lg:flex lg:w-[45%] flex-col border-l border-[#dddfe2] bg-[#f0f2f5] px-5 py-6 overflow-y-auto sticky top-0 h-screen">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5" /> Pratinjau Iklan
+          </p>
+          <AdPreviewPanel data={data} />
+        </div>
+      )}
     </div>
   );
 }
