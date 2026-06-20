@@ -12,6 +12,10 @@ export interface SiteSettings {
   description: string;
   keywords: string;
   ogImageUrl: string;
+  qrisString: string;
+  logoUrl: string;
+  faviconUrl: string;
+  qrisImageUrl: string;
   updatedAt: string;
 }
 
@@ -25,6 +29,10 @@ const DEFAULTS: SiteSettings = {
   keywords:
     "simulator iklan,simulator iklan facebook,simulator meta ads,belajar iklan facebook,belajar meta ads,belajar iklan instagram,cara buat iklan facebook,latihan meta ads manager,praktek iklan digital,kursus iklan facebook gratis,simulator ads manager,belajar digital marketing,cara pasang iklan facebook,iklan instagram tutorial,meta business suite simulator,belajar facebook ads pemula,simulasi kampanye iklan,tools belajar iklan,latihan iklan tanpa modal,edukasi iklan digital,adsimulator",
   ogImageUrl: "/og-image.png",
+  qrisString: "",
+  logoUrl: "",
+  faviconUrl: "",
+  qrisImageUrl: "",
   updatedAt: new Date().toISOString(),
 };
 

@@ -1,7 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { getSiteSettings } from "@/lib/siteSettings";
 import SettingsForm from "./SettingsForm";
-import { Search, Globe, FileText, Info, CheckCircle, AlertCircle, Users, Megaphone, ShieldCheck } from "lucide-react";
+import QrisForm from "./QrisForm";
+import { Search, Globe, FileText, Info, CheckCircle, AlertCircle, Users, Megaphone, ShieldCheck, QrCode } from "lucide-react";
 
 export const metadata = { title: "Pengaturan Platform" };
 
@@ -175,6 +176,25 @@ export default async function AdminSettingsPage() {
               Semua data bersifat edukasi. Tidak ada koneksi ke API Meta asli, tidak ada biaya nyata.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* QRIS Traktir */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-50">
+          <div className="p-1.5 rounded-lg bg-emerald-50">
+            <QrCode className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-[#1c2b33]">Pengaturan QRIS Traktir</h2>
+            <p className="text-xs text-gray-400">Konfigurasi QRIS statis untuk fitur donasi pengembang di halaman /traktir</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <QrisForm
+            initialQris={settings.qrisString ?? ""}
+            initialQrisImageUrl={settings.qrisImageUrl ?? ""}
+          />
         </div>
       </div>
     </div>

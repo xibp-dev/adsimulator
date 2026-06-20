@@ -14,7 +14,7 @@ const navItems = [
   { href: "/admin/settings", label: "Pengaturan", icon: Settings },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ logoUrl }: { logoUrl?: string }) {
   const pathname = usePathname();
 
   return (
@@ -22,9 +22,13 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="px-5 py-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#0866FF] to-[#5b9bff] rounded-xl flex items-center justify-center shadow-lg shadow-[#0866FF]/20">
-            <Sparkles className="w-4.5 h-4.5 text-white" />
-          </div>
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="h-9 object-contain rounded-lg" />
+          ) : (
+            <div className="w-9 h-9 bg-gradient-to-br from-[#0866FF] to-[#5b9bff] rounded-xl flex items-center justify-center shadow-lg shadow-[#0866FF]/20">
+              <Sparkles className="w-4.5 h-4.5 text-white" />
+            </div>
+          )}
           <div>
             <p className="text-sm font-bold text-white tracking-tight">AdSimulator</p>
             <p className="text-[11px] text-white/40 font-medium">Admin Panel</p>

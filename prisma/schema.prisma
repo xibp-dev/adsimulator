@@ -147,6 +147,10 @@ model SiteSettings {
   description String   @default("MetaLabs adalah simulator Meta Ads Manager berbahasa Indonesia. Belajar iklan Facebook dan Instagram secara gratis tanpa budget nyata.")
   keywords    String   @default("simulator iklan,simulator iklan facebook,simulator meta ads,belajar iklan facebook,belajar meta ads,belajar iklan instagram,cara buat iklan facebook,latihan meta ads manager,praktek iklan digital,kursus iklan facebook gratis,simulator ads manager,belajar digital marketing,cara pasang iklan facebook,iklan instagram tutorial,meta business suite simulator,belajar facebook ads pemula,simulasi kampanye iklan,tools belajar iklan,latihan iklan tanpa modal,edukasi iklan digital")
   ogImageUrl  String   @default("/og-image.png")
+  qrisString  String   @default("")
+  logoUrl     String   @default("")
+  faviconUrl  String   @default("")
+  qrisImageUrl String   @default("")
   updatedAt   DateTime @updatedAt
 }
 

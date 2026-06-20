@@ -63,6 +63,11 @@ export async function generateMetadata(): Promise<Metadata> {
     verification: {
       google: "oxbRS09d7RU4FvsFCv8-jNqR1VcpqNUWsxeKZ4CAIHQ",
     },
+    icons: s.faviconUrl ? {
+      icon: s.faviconUrl,
+      shortcut: s.faviconUrl,
+      apple: s.faviconUrl,
+    } : undefined,
   };
 }
 

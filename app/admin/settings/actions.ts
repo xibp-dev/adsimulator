@@ -11,6 +11,8 @@ export async function saveSeoSettings(formData: FormData) {
     description: (formData.get("description") as string)?.trim(),
     keywords: (formData.get("keywords") as string)?.trim(),
     ogImageUrl: (formData.get("ogImageUrl") as string)?.trim(),
+    logoUrl: (formData.get("logoUrl") as string)?.trim(),
+    faviconUrl: (formData.get("faviconUrl") as string)?.trim(),
   };
 
   const result = await updateSiteSettings(values);

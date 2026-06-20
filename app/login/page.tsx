@@ -128,6 +128,12 @@ function LoginForm() {
             </a>
             . All rights reserved.
           </p>
+          <p className="text-xs text-gray-400 text-center mt-1.5">
+            Suka pakai AdSimulator?{" "}
+            <a href="/traktir" className="text-emerald-500 hover:text-emerald-600 hover:underline font-medium">
+              ☕ Traktir pengembang
+            </a>
+          </p>
         </div>
       </div>
     </div>

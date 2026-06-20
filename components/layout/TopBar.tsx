@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -14,9 +14,10 @@ interface TopBarProps {
   balance: number;
   currency?: string;
   onToggleSidebar?: () => void;
+  logoUrl?: string;
 }
 
-export default function TopBar({ userName, accountName, balance, currency = "IDR", onToggleSidebar }: TopBarProps) {
+export default function TopBar({ userName, accountName, balance, currency = "IDR", onToggleSidebar, logoUrl }: TopBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
@@ -30,9 +31,13 @@ export default function TopBar({ userName, accountName, balance, currency = "IDR
       </button>
 
       <div className="flex items-center gap-2 min-w-fit">
-        <div className="w-8 h-8 bg-[#0866FF] rounded-lg flex items-center justify-center">
-          <Layers className="w-4 h-4 text-white" />
-        </div>
+        {logoUrl ? (
+          <img src={logoUrl} alt="Logo" className="h-8 object-contain rounded" />
+        ) : (
+          <div className="w-8 h-8 bg-[#0866FF] rounded-lg flex items-center justify-center">
+            <Layers className="w-4 h-4 text-white" />
+          </div>
+        )}
         <span className="text-[15px] font-bold text-[#1c2b33] hidden sm:block">AdSimulator</span>
       </div>
 

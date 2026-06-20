@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import Link from "next/link";
 import { Metadata } from "next";
+import { getSiteSettings } from "@/lib/siteSettings";
 import {
   Layers,
   MonitorPlay,
@@ -231,6 +232,9 @@ export default async function HomePage() {
     redirect("/dashboard");
   }
 
+  const settings = await getSiteSettings();
+  const logoUrl = settings?.logoUrl || "";
+
   return (
     <>
       {/* JSON-LD */}
@@ -244,9 +248,13 @@ export default async function HomePage() {
         <header className="sticky top-0 z-50 border-b border-[#dddfe2] bg-white/90 backdrop-blur-md">
           <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#0866FF] rounded-lg flex items-center justify-center">
-                <Layers className="w-4 h-4 text-white" />
-              </div>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-9 object-contain rounded" />
+              ) : (
+                <div className="w-8 h-8 bg-[#0866FF] rounded-lg flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-white" />
+                </div>
+              )}
               <span className="text-lg font-bold text-[#1c2b33]">AdSimulator</span>
             </div>
             <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
@@ -517,15 +525,20 @@ export default async function HomePage() {
         <footer className="bg-[#1c2b33] text-gray-400 py-10 px-6">
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-[#0866FF] rounded-lg flex items-center justify-center">
-                <Layers className="w-4 h-4 text-white" />
-              </div>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-7 object-contain rounded" />
+              ) : (
+                <div className="w-7 h-7 bg-[#0866FF] rounded-lg flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-white" />
+                </div>
+              )}
               <span className="font-semibold text-white">AdSimulator</span>
               <span>— Simulator edukasi, bukan produk resmi Meta.</span>
             </div>
             <div className="flex items-center gap-6">
               <Link href="/login" className="hover:text-white transition-colors">Masuk</Link>
               <Link href="/register" className="hover:text-white transition-colors">Daftar</Link>
+              <Link href="/traktir" className="hover:text-white transition-colors">☕ Traktir</Link>
               <span>
                 &copy; {new Date().getFullYear()}{" "}
                 <a
