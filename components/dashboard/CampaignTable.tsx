@@ -6,13 +6,15 @@ import { useRouter } from "next/navigation";
 import {
   Plus, Copy, Edit2, Trash2, Download, Columns,
   ChevronDown, TrendingUp, Eye, X,
-  ImageIcon, Loader2, Save
+  Loader2, Save
 } from "lucide-react";
 import { CampaignObjective, CampaignStatus } from "@/types";
 import { formatCurrency, formatNumber } from "@/lib/simulate";
 import { OBJECTIVE_INFO } from "@/lib/mockData";
 import StatusBadge from "@/components/ui/StatusBadge";
 import StatusToggle from "@/components/ui/StatusToggle";
+import AdPreviewPanel from "@/components/create/AdPreviewPanel";
+import type { CampaignFormData } from "@/components/create/CreateCampaignFlow";
 
 interface Campaign {
   id: string;
@@ -69,64 +71,36 @@ interface Props {
 
 type Tab = "campaigns" | "adsets" | "ads";
 
-/* ── Ad Preview Modal ── */
+/* ── Ad Preview Modal — pakai AdPreviewPanel yang sama dengan halaman buat/edit ── */
 function AdPreviewModal({ ad, onClose }: { ad: Ad; onClose: () => void }) {
-  const imgUrl = ad.mediaUrls.find((u) => u && !u.startsWith("yt:")) ?? "";
-  const ytUrl = ad.mediaUrls.find((u) => u?.startsWith("yt:"))?.replace("yt:", "") ?? "";
-  const ytId = ytUrl.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
+  // Map data iklan ke bentuk CampaignFormData agar tampilan preview identik
+  const previewData = {
+    identityPage: ad.identityPage,
+    identityInstagram: "",
+    primaryText: ad.primaryText,
+    headline: ad.headline,
+    description: ad.description,
+    cta: ad.cta,
+    destinationUrl: ad.destinationUrl,
+    mediaUrls: ad.mediaUrls,
+    format: ad.format,
+  } as unknown as CampaignFormData;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2] flex-shrink-0">
           <h2 className="font-semibold text-[#1c2b33] text-sm">Preview Iklan</h2>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="bg-white p-4">
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
-            <div className="flex items-center gap-2.5 px-3 py-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                {(ad.identityPage || "H").charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="font-semibold text-[#1c2b33] text-[13px]">{ad.identityPage || "Nama Halaman"}</p>
-                <p className="text-[10px] text-gray-400">Bersponsor · 🌐</p>
-              </div>
-            </div>
-            {ad.primaryText && (
-              <p className="px-3 pb-2 text-[13px] text-gray-800 leading-relaxed">{ad.primaryText.slice(0, 100)}{ad.primaryText.length > 100 ? "…" : ""}</p>
-            )}
-            <div className="w-full bg-gray-100 aspect-[1.91/1] overflow-hidden relative">
-              {ytId ? (
-                <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allowFullScreen />
-              ) : imgUrl ? (
-                <img src={imgUrl} alt="ad" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-300">
-                  <ImageIcon className="w-8 h-8" />
-                  <span className="text-xs">Belum ada gambar</span>
-                </div>
-              )}
-              <span className="absolute top-2 left-2 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">IKLAN</span>
-            </div>
-            {ad.headline && (
-              <div className="flex items-center justify-between px-3 py-2.5 bg-[#f0f2f5]">
-                <div>
-                  <p className="text-[10px] text-gray-500 truncate max-w-[220px]">{ad.destinationUrl?.replace(/^https?:\/\//, "").split("/")[0] || "situsanda.com"}</p>
-                  <p className="font-semibold text-[#1c2b33] text-[12px]">{ad.headline}</p>
-                </div>
-                <button className="bg-[#e4e6eb] text-[#1c2b33] text-[12px] font-semibold px-3 py-1.5 rounded-md ml-2 flex-shrink-0">
-                  {ad.cta?.replace(/_/g, " ") || "Pelajari"}
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="p-4 overflow-y-auto bg-[#f0f2f5]">
+          <AdPreviewPanel data={previewData} />
         </div>
 
-        <div className="px-5 pb-4 text-xs text-gray-400 text-center">
+        <div className="px-5 py-3 border-t border-[#dddfe2] text-xs text-gray-400 text-center flex-shrink-0">
           Format: {ad.format} · Set Iklan: {ad.adSetName}
         </div>
       </div>
