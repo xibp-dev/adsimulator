@@ -17,6 +17,18 @@ const PLACEMENTS: { id: Placement; label: string; icon: string }[] = [
 
 const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80";
 
+function getMediaImage(data: CampaignFormData): string {
+  const url = data.mediaUrls?.[0] ?? "";
+  if (!url || url.startsWith("yt:")) return PLACEHOLDER_IMAGE;
+  return url;
+}
+
+function getCarouselImage(data: CampaignFormData, index: number): string {
+  const url = data.mediaUrls?.[index] ?? "";
+  if (!url || url.startsWith("yt:")) return PLACEHOLDER_IMAGE;
+  return url;
+}
+
 function getDomain(url: string) {
   try { return new URL(url).hostname.replace("www.", ""); } catch { return url || "situsanda.com"; }
 }
@@ -65,12 +77,19 @@ function FbFeedPreview({ data }: Props) {
 
       {/* Media */}
       <div className="w-full bg-gray-100 aspect-[1.91/1] relative overflow-hidden">
-        <img src={PLACEHOLDER_IMAGE} alt="ad media" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-          <div className="bg-black/30 rounded-full p-2">
-            <Play className="w-6 h-6 text-white fill-white" />
-          </div>
-        </div>
+        {(data.mediaUrls?.[0] ?? "").startsWith("yt:") ? (() => {
+          const ytUrl = (data.mediaUrls![0]).replace("yt:", "");
+          const match = ytUrl.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+          return match ? (
+            <iframe src={`https://www.youtube.com/embed/${match[1]}`} className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-black">
+              <Play className="w-10 h-10 text-white/50" />
+            </div>
+          );
+        })() : (
+          <img src={getMediaImage(data)} alt="ad media" className="w-full h-full object-cover" />
+        )}
         <span className="absolute top-2 left-2 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">IKLAN</span>
       </div>
 
@@ -136,7 +155,7 @@ function IgFeedPreview({ data }: Props) {
 
       {/* Square media */}
       <div className="w-full aspect-square bg-gray-100 relative overflow-hidden">
-        <img src={PLACEHOLDER_IMAGE} alt="ad" className="w-full h-full object-cover" />
+        <img src={getMediaImage(data)} alt="ad" className="w-full h-full object-cover" />
         <span className="absolute top-2 right-2 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">IKLAN</span>
       </div>
 
@@ -181,7 +200,7 @@ function StoriesPreview({ data, platform }: Props & { platform: "ig" | "fb" }) {
   return (
     <div className="w-full max-w-[220px] mx-auto rounded-2xl overflow-hidden shadow-md relative bg-black" style={{ aspectRatio: "9/16" }}>
       {/* BG image */}
-      <img src={PLACEHOLDER_IMAGE} alt="story" className="absolute inset-0 w-full h-full object-cover opacity-90" />
+      <img src={getMediaImage(data)} alt="story" className="absolute inset-0 w-full h-full object-cover opacity-90" />
 
       {/* Overlay gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
@@ -233,7 +252,7 @@ function IgReelsPreview({ data }: Props) {
 
   return (
     <div className="w-full max-w-[220px] mx-auto rounded-2xl overflow-hidden shadow-md relative bg-black" style={{ aspectRatio: "9/16" }}>
-      <img src={PLACEHOLDER_IMAGE} alt="reel" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+      <img src={getMediaImage(data)} alt="reel" className="absolute inset-0 w-full h-full object-cover opacity-80" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
       {/* Right side actions */}

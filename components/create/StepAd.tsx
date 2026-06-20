@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { CampaignFormData } from "./CreateCampaignFlow";
 import { MOCK_PAGES, MOCK_INSTAGRAM, CTA_OPTIONS, MOCK_INSTANT_FORMS } from "@/lib/mockData";
 import { CTA } from "@/types";
-import { ImagePlus, Loader2, Eye } from "lucide-react";
+import { ImagePlus, Loader2, Eye, Plus, Trash2, Youtube, Image as ImageIcon, Link } from "lucide-react";
 import AdPreviewPanel from "./AdPreviewPanel";
 
 interface Props {
@@ -139,7 +139,12 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
             ].map((f) => (
               <button
                 key={f.value}
-                onClick={() => onChange({ format: f.value as "SINGLE_IMAGE_VIDEO" | "CAROUSEL" | "COLLECTION" })}
+                onClick={() => {
+                  onChange({
+                    format: f.value as "SINGLE_IMAGE_VIDEO" | "CAROUSEL" | "COLLECTION",
+                    mediaUrls: [],
+                  });
+                }}
                 className={`p-3 rounded-lg border text-sm font-medium text-center transition-colors ${
                   data.format === f.value ? "border-[#0866FF] bg-[#e7f0ff] text-[#0866FF]" : "border-[#dddfe2] text-[#1c2b33] hover:bg-gray-50"
                 }`}
@@ -150,14 +155,211 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
           </div>
         </section>
 
-        {/* Materi iklan */}
-        <section className="bg-white rounded-xl border border-[#dddfe2] p-5">
-          <h3 className="font-semibold text-sm text-[#1c2b33] mb-3">Materi iklan</h3>
-          <div className="border-2 border-dashed border-[#dddfe2] rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
-            <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-[#1c2b33]">Tambahkan media</p>
-            <p className="text-xs text-gray-400 mt-1">JPG, PNG, GIF, MP4 · Simulator (tanpa unggahan asli)</p>
-          </div>
+        {/* Materi iklan — adaptif per format */}
+        <section className="bg-white rounded-xl border border-[#dddfe2] p-5 space-y-3">
+          <h3 className="font-semibold text-sm text-[#1c2b33]">Materi iklan</h3>
+
+          {/* SINGLE: pilih gambar atau video YouTube */}
+          {data.format === "SINGLE_IMAGE_VIDEO" && (
+            <div className="space-y-3">
+              {/* Sub-toggle: Gambar / Video */}
+              <div className="flex gap-2">
+                {[
+                  { val: "image", icon: <ImageIcon className="w-3.5 h-3.5" />, label: "Gambar (URL)" },
+                  { val: "video", icon: <Youtube className="w-3.5 h-3.5" />, label: "Video YouTube" },
+                ].map((t) => {
+                  const isVideo = (data.mediaUrls?.[0] ?? "").startsWith("yt:");
+                  const active = t.val === "video" ? isVideo : !isVideo;
+                  return (
+                    <button
+                      key={t.val}
+                      type="button"
+                      onClick={() => onChange({ mediaUrls: [] })}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        active ? "border-[#0866FF] bg-[#e7f0ff] text-[#0866FF]" : "border-[#dddfe2] text-gray-500 hover:bg-gray-50"
+                      }`}
+                    >
+                      {t.icon} {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Input URL gambar */}
+              {!(data.mediaUrls?.[0] ?? "").startsWith("yt:") && (
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <Link className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <input
+                      type="url"
+                      value={data.mediaUrls?.[0] ?? ""}
+                      onChange={(e) => onChange({ mediaUrls: [e.target.value] })}
+                      placeholder="https://contoh.com/gambar.jpg"
+                      className="flex-1 px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF] font-mono"
+                    />
+                  </div>
+                  {data.mediaUrls?.[0] && (
+                    <div className="rounded-lg overflow-hidden border border-[#dddfe2] bg-gray-50 h-40 flex items-center justify-center">
+                      <img
+                        src={data.mediaUrls[0]}
+                        alt="preview"
+                        className="h-full w-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400">Masukkan URL gambar publik (JPG, PNG, WebP).</p>
+                </div>
+              )}
+
+              {/* Input YouTube */}
+              {(data.mediaUrls?.[0] ?? "").startsWith("yt:") && (
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <input
+                      type="url"
+                      value={(data.mediaUrls?.[0] ?? "").replace("yt:", "")}
+                      onChange={(e) => onChange({ mediaUrls: ["yt:" + e.target.value] })}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      className="flex-1 px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF] font-mono"
+                    />
+                  </div>
+                  {(data.mediaUrls?.[0] ?? "").length > 3 && (() => {
+                    const url = (data.mediaUrls![0]).replace("yt:", "");
+                    const match = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+                    return match ? (
+                      <div className="rounded-lg overflow-hidden border border-[#dddfe2] aspect-video">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${match[1]}`}
+                          className="w-full h-full"
+                          allow="autoplay; encrypted-media"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : <p className="text-xs text-red-400">URL YouTube tidak valid.</p>;
+                  })()}
+                  <p className="text-xs text-gray-400">Tempel URL video YouTube. Embed akan muncul di preview.</p>
+                </div>
+              )}
+
+              {/* Toggle gambar ↔ video */}
+              <button
+                type="button"
+                onClick={() => {
+                  const isVideo = (data.mediaUrls?.[0] ?? "").startsWith("yt:");
+                  onChange({ mediaUrls: isVideo ? [] : ["yt:"] });
+                }}
+                className="text-xs text-[#0866FF] hover:underline"
+              >
+                {(data.mediaUrls?.[0] ?? "").startsWith("yt:") ? "← Ganti ke gambar" : "Pakai video YouTube →"}
+              </button>
+            </div>
+          )}
+
+          {/* CAROUSEL: beberapa kartu gambar */}
+          {data.format === "CAROUSEL" && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">Tambahkan 2–10 kartu. Setiap kartu bisa punya gambar berbeda.</p>
+              {(data.mediaUrls?.length ? data.mediaUrls : [""]).map((url, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0866FF] text-white text-[10px] font-bold flex items-center justify-center mt-2">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="url"
+                        value={url}
+                        onChange={(e) => {
+                          const updated = [...(data.mediaUrls ?? [])];
+                          updated[i] = e.target.value;
+                          onChange({ mediaUrls: updated });
+                        }}
+                        placeholder={`URL gambar kartu ${i + 1}`}
+                        className="flex-1 px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF] font-mono"
+                      />
+                      {(data.mediaUrls?.length ?? 0) > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (data.mediaUrls ?? []).filter((_, idx) => idx !== i);
+                            onChange({ mediaUrls: updated });
+                          }}
+                          className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    {url && (
+                      <div className="h-20 w-32 rounded-lg overflow-hidden border border-[#dddfe2] bg-gray-50">
+                        <img src={url} alt={`kartu ${i + 1}`} className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {(data.mediaUrls?.length ?? 0) < 10 && (
+                <button
+                  type="button"
+                  onClick={() => onChange({ mediaUrls: [...(data.mediaUrls ?? []), ""] })}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#0866FF] hover:bg-[#e7f0ff] px-3 py-2 rounded-lg border border-[#0866FF] transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Tambah kartu
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* COLLECTION */}
+          {data.format === "COLLECTION" && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">Format Koleksi terdiri dari 1 gambar/video utama + min. 3 gambar produk di bawahnya.</p>
+              {/* Cover */}
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Gambar/Video Utama (Cover)</label>
+                <input
+                  type="url"
+                  value={data.mediaUrls?.[0] ?? ""}
+                  onChange={(e) => {
+                    const updated = [...(data.mediaUrls ?? ["", "", "", ""])];
+                    updated[0] = e.target.value;
+                    onChange({ mediaUrls: updated });
+                  }}
+                  placeholder="URL gambar cover"
+                  className="w-full px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF] font-mono"
+                />
+              </div>
+              {/* Produk 1–3 */}
+              <label className="text-xs font-semibold text-gray-500 block">Gambar Produk (min. 3)</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="space-y-1">
+                    <input
+                      type="url"
+                      value={data.mediaUrls?.[n] ?? ""}
+                      onChange={(e) => {
+                        const updated = [...(data.mediaUrls ?? ["", "", "", ""])];
+                        while (updated.length <= n) updated.push("");
+                        updated[n] = e.target.value;
+                        onChange({ mediaUrls: updated });
+                      }}
+                      placeholder={`Produk ${n}`}
+                      className="w-full px-2 py-1.5 border border-[#dddfe2] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0866FF] font-mono"
+                    />
+                    {data.mediaUrls?.[n] && (
+                      <div className="h-16 rounded-lg overflow-hidden border border-[#dddfe2] bg-gray-50">
+                        <img src={data.mediaUrls[n]} alt={`produk ${n}`} className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Teks iklan */}
