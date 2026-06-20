@@ -78,7 +78,22 @@ export async function GET() {
           await supabase.from("SimMetrics").insert({ entityType: "ad", entityId: ad.id, ...baseMetric, id: randomUUID() });
           await supabase.from("SimMetrics").insert({ entityType: "adset", entityId: adSet.id, ...baseMetric, id: randomUUID() });
           await supabase.from("SimMetrics").insert({ entityType: "campaign", entityId: adSet.campaignId, ...baseMetric, id: randomUUID() });
-          
+
+          // Kurangi saldo akun iklan sesuai belanja awal yang disimulasikan
+          if (campaign.adAccountId) {
+            const { data: account } = await supabase
+              .from("AdAccount")
+              .select("id, balance")
+              .eq("id", campaign.adAccountId)
+              .maybeSingle();
+            if (account) {
+              await supabase
+                .from("AdAccount")
+                .update({ balance: Math.max(0, account.balance - metrics.amountSpent) })
+                .eq("id", account.id);
+            }
+          }
+
           // Update AdSet status to ACTIVE if it has at least one ACTIVE ad
           await supabase.from("AdSet").update({ status: "ACTIVE" }).eq("id", adSet.id);
         }

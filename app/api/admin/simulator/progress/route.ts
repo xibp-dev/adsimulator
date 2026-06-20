@@ -94,14 +94,13 @@ export async function POST() {
         .from("AdAccount")
         .select("id, balance")
         .eq("id", campaignRaw.adAccountId)
-        .single();
+        .maybeSingle();
 
       if (account) {
         await supabase
           .from("AdAccount")
           .update({
             balance: Math.max(0, account.balance - metrics.amountSpent),
-            updatedAt: new Date().toISOString()
           })
           .eq("id", account.id);
       }
