@@ -492,6 +492,20 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
   const [bulkDeletePending, setBulkDeletePending] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Proses otomatis iklan yang masih IN_REVIEW saat halaman dibuka:
+  // setujui → buat metrik → potong saldo. Lalu refresh agar tabel & saldo TopBar terbarui.
+  useEffect(() => {
+    fetch("/api/simulator/tick")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res?.processedIds?.length) {
+          router.refresh();
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (activeTab === "adsets" && adSets.length === 0) {
       setLoading(true);
