@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Megaphone, LayoutGrid, ImagePlay, Users, CreditCard,
-  BarChart3, ChevronLeft, ChevronRight, Home, Briefcase, Flag, Cpu, Globe, BookOpen
+  BarChart3, ChevronLeft, ChevronRight, Home, Briefcase, Flag, Cpu, Globe, BookOpen,
+  GraduationCap, Crown, Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,12 @@ const metaItems = [
   { href: "/dashboard/billing", label: "Penagihan", icon: CreditCard },
   { href: "/dashboard/overview", label: "Ringkasan akun", icon: BarChart3 },
   { href: "/dashboard/panduan", label: "Panduan Beriklan", icon: BookOpen },
+];
+
+const lmsItems = [
+  { href: "/dashboard/kelas", label: "Kelas Premium", icon: GraduationCap },
+  { href: "/dashboard/sertifikasi", label: "Sertifikasi", icon: Award },
+  { href: "/dashboard/langganan", label: "Langganan", icon: Crown },
 ];
 
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
@@ -73,6 +80,34 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {collapsed && <div className="my-2 mx-3 border-t border-gray-100" />}
 
         {metaItems.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/");
+          return (
+            <Link
+              key={href}
+              href={href}
+              title={collapsed ? label : undefined}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 mx-2 rounded-lg text-sm font-medium transition-colors",
+                active
+                  ? "bg-[#e7f0ff] text-[#0866FF]"
+                  : "text-[#1c2b33] hover:bg-gray-100"
+              )}
+            >
+              <Icon className={cn("flex-shrink-0 w-5 h-5", active ? "text-[#0866FF]" : "text-gray-500")} />
+              {!collapsed && <span>{label}</span>}
+            </Link>
+          );
+        })}
+
+        {/* LMS / Kelas section */}
+        {!collapsed && (
+          <div className="px-5 pt-4 pb-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Belajar (LMS)</p>
+          </div>
+        )}
+        {collapsed && <div className="my-2 mx-3 border-t border-gray-100" />}
+
+        {lmsItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { getSiteSettings } from "@/lib/siteSettings";
+import { GTMScript, GTMNoScript } from "@/components/GoogleTagManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -71,13 +72,20 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const s = await getSiteSettings();
+  const gtmId = s.gtmContainerId?.trim() || "";
+
   return (
     <html lang="id" className="h-full">
       <body className={`${inter.className} h-full bg-[#f0f2f5] antialiased`}>
+        {/* GTM noscript — tepat setelah <body> */}
+        <GTMNoScript id={gtmId} />
         <SessionProvider>
           {children}
         </SessionProvider>
+        {/* GTM script */}
+        <GTMScript id={gtmId} />
       </body>
     </html>
   );

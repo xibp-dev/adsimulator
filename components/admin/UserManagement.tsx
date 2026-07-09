@@ -234,18 +234,24 @@ function EditUserModal({ user, onClose, onSave }: {
   const [email, setEmail] = useState(user.email);
   const [role, setRole] = useState(user.role);
   const [balance, setBalance] = useState(user.adAccount?.balance ?? 0);
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const save = async () => {
     setLoading(true);
+    setError("");
     const res = await fetch(`/api/admin/users/${user.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, role, balance }),
+      body: JSON.stringify({ name, email, role, balance, password: password || undefined }),
     });
     setLoading(false);
     if (res.ok) {
       onSave({ id: user.id, name, email, role, adAccount: user.adAccount ? { ...user.adAccount, balance } : null });
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Gagal menyimpan perubahan");
     }
   };
 
@@ -273,6 +279,12 @@ function EditUserModal({ user, onClose, onSave }: {
             <label className="block text-sm font-medium text-gray-600 mb-1">Saldo simulasi (IDR)</label>
             <input type="number" value={balance} onChange={(e) => setBalance(Number(e.target.value))} className="w-full px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]" />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Reset kata sandi</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Kosongkan bila tidak diubah" className="w-full px-3 py-2 border border-[#dddfe2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]" />
+            <p className="text-[11px] text-gray-400 mt-1">Isi hanya jika ingin mengganti kata sandi pengguna (min. 6 karakter).</p>
+          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
         <div className="flex gap-3 mt-6 justify-end">
           <button onClick={onClose} className="px-4 py-2 border border-[#dddfe2] rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>

@@ -1,5 +1,59 @@
 export type Role = "ADMIN" | "USER";
 export type UserStatus = "ACTIVE" | "SUSPENDED";
+export type SubscriptionStatus = "PENDING" | "ACTIVE" | "EXPIRED" | "REJECTED";
+export type PlanPeriod = "MONTHLY" | "YEARLY";
+
+export interface Course {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  level: string;
+  category: string;
+  thumbnailEmoji: string;
+  accent: string;
+  isFree: boolean;
+  sortOrder: number;
+  published: boolean;
+  createdAt: string;
+}
+
+export interface Lesson {
+  id: string;
+  courseId: string;
+  section: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  durationMin: number;
+  content: string;
+  isPreview: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface ExamQuestion {
+  id: string;
+  courseId: string;
+  question: string;
+  options: string; // JSON array
+  correctIndex: number;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface ExamAttempt {
+  id: string;
+  userId: string;
+  courseId: string;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  passed: boolean;
+  certNumber: string | null;
+  answers: string;
+  createdAt: string;
+}
 export type CampaignObjective = "AWARENESS" | "TRAFFIC" | "ENGAGEMENT" | "LEADS" | "APP_PROMOTION" | "SALES";
 export type CampaignStatus = "ACTIVE" | "PAUSED" | "DRAFT";
 export type AdStatus = "ACTIVE" | "PAUSED" | "DRAFT" | "IN_REVIEW";

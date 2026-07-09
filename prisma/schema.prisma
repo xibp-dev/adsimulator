@@ -151,6 +151,12 @@ model SiteSettings {
   logoUrl     String   @default("")
   faviconUrl  String   @default("")
   qrisImageUrl String   @default("")
+  gtmContainerId String @default("")
+  certInstitution    String @default("AdSimulator Academy")
+  certSignatory      String @default("AdSimulator Academy")
+  certSignatoryTitle String @default("Penyelenggara")
+  certLogoUrl        String @default("")
+  certAccent         String @default("#0866FF")
   updatedAt   DateTime @updatedAt
 }
 
@@ -189,6 +195,91 @@ model SocialAccount {
   status    String   @default("Terkoneksi")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ── LMS berbayar (simulator iklan tetap gratis) ──
+model Subscription {
+  id           String    @id @default(cuid())
+  userId       String
+  planSlug     String
+  planName     String
+  amount       Float     @default(0)
+  period       String    @default("MONTHLY") // MONTHLY | YEARLY
+  durationDays Int       @default(30)
+  status       String    @default("PENDING") // PENDING | ACTIVE | EXPIRED | REJECTED
+  qrisString   String    @default("")
+  note         String    @default("")
+  startedAt    DateTime?
+  expiresAt    DateTime?
+  approvedBy   String?
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Course {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  description    String   @default("")
+  level          String   @default("Pemula") // Pemula | Menengah | Lanjutan
+  category       String   @default("Meta Ads")
+  thumbnailEmoji String   @default("📘")
+  accent         String   @default("blue")
+  isFree         Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  published      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  lessons        Lesson[]
+  examQuestions  ExamQuestion[]
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  courseId    String
+  section     String   @default("Umum")
+  title       String
+  description String   @default("")
+  videoUrl    String   @default("")
+  durationMin Int      @default(5)
+  content     String   @default("")
+  isPreview   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+model ExamQuestion {
+  id           String   @id @default(cuid())
+  courseId     String
+  question     String
+  options      String   @default("[]") // JSON array pilihan
+  correctIndex Int      @default(0)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+model ExamAttempt {
+  id           String   @id @default(cuid())
+  userId       String
+  courseId     String
+  score        Int      @default(0)
+  correctCount Int      @default(0)
+  totalCount   Int      @default(0)
+  passed       Boolean  @default(false)
+  certNumber   String?
+  answers      String   @default("[]")
+  createdAt    DateTime @default(now())
+
+  @@index([userId, courseId])
 }
 
 

@@ -16,6 +16,12 @@ export interface SiteSettings {
   logoUrl: string;
   faviconUrl: string;
   qrisImageUrl: string;
+  gtmContainerId: string;
+  certInstitution: string;
+  certSignatory: string;
+  certSignatoryTitle: string;
+  certLogoUrl: string;
+  certAccent: string;
   updatedAt: string;
 }
 
@@ -33,6 +39,12 @@ const DEFAULTS: SiteSettings = {
   logoUrl: "",
   faviconUrl: "",
   qrisImageUrl: "",
+  gtmContainerId: "",
+  certInstitution: "AdSimulator Academy",
+  certSignatory: "AdSimulator Academy",
+  certSignatoryTitle: "Penyelenggara",
+  certLogoUrl: "",
+  certAccent: "#0866FF",
   updatedAt: new Date().toISOString(),
 };
 

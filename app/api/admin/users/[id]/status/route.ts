@@ -12,7 +12,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data: user, error } = await supabase
     .from("User")
-    .update({ status, updatedAt: new Date().toISOString() })
+    .update({ status })
     .eq("id", id)
     .select()
     .single();

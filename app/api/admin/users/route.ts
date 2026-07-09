@@ -50,8 +50,7 @@ export async function POST(req: NextRequest) {
       passwordHash,
       role,
       status: "ACTIVE",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date().toISOString()
     })
     .select()
     .single();
@@ -67,8 +66,7 @@ export async function POST(req: NextRequest) {
       name: `${name}'s Ad Account`,
       balance,
       currency: "IDR",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date().toISOString()
     });
 
   if (accountError) return NextResponse.json({ error: accountError.message }, { status: 500 });
@@ -86,7 +84,7 @@ export async function POST(req: NextRequest) {
     .eq("id", userId)
     .single();
 
-  if (!fullUserRaw) return NextResponse.json({ error: "User fetch failed" }, { status: 550 });
+  if (!fullUserRaw) return NextResponse.json({ error: "User fetch failed" }, { status: 500 });
 
   const adAccountRaw = (Array.isArray(fullUserRaw.adAccount) ? fullUserRaw.adAccount[0] : fullUserRaw.adAccount) as any;
   const campaignsCount = adAccountRaw?.campaigns 
