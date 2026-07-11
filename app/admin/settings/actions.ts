@@ -25,6 +25,15 @@ export async function saveSeoSettings(formData: FormData) {
   return result;
 }
 
+export async function setTraktirEnabled(enabled: boolean) {
+  const result = await updateSiteSettings({ traktirEnabled: enabled });
+  if (result.success) {
+    updateTag(SITE_SETTINGS_TAG);
+    revalidatePath("/", "layout");
+  }
+  return result;
+}
+
 export async function saveCertificateSettings(formData: FormData) {
   const values = {
     certInstitution: (formData.get("certInstitution") as string)?.trim() || "AdSimulator Academy",

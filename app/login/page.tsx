@@ -14,11 +14,16 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [traktirEnabled, setTraktirEnabled] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setSuccessMsg("Pendaftaran berhasil! Silakan masuk.");
     }
+    fetch("/api/qris/settings")
+      .then((r) => r.json())
+      .then((d) => setTraktirEnabled(d.traktirEnabled !== false))
+      .catch(() => {});
   }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -128,12 +133,14 @@ function LoginForm() {
             </a>
             . All rights reserved.
           </p>
-          <p className="text-xs text-gray-400 text-center mt-1.5">
-            Suka pakai AdSimulator?{" "}
-            <a href="/traktir" className="text-emerald-500 hover:text-emerald-600 hover:underline font-medium">
-              ☕ Traktir pengembang
-            </a>
-          </p>
+          {traktirEnabled && (
+            <p className="text-xs text-gray-400 text-center mt-1.5">
+              Suka pakai AdSimulator?{" "}
+              <a href="/traktir" className="text-emerald-500 hover:text-emerald-600 hover:underline font-medium">
+                ☕ Traktir pengembang
+              </a>
+            </p>
+          )}
         </div>
       </div>
     </div>

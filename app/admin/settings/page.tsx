@@ -4,6 +4,7 @@ import SeoForm from "./SeoForm";
 import BrandingForm from "./BrandingForm";
 import QrisForm from "./QrisForm";
 import CertificateForm from "./CertificateForm";
+import TraktirToggle from "./TraktirToggle";
 import { Search, Globe, Info, CheckCircle, AlertCircle, QrCode, Award, Palette, FileText } from "lucide-react";
 
 export const metadata = { title: "Pengaturan Platform" };
@@ -166,7 +167,8 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
       {tab === "qris" && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-3xl">
           <SectionHeader icon={QrCode} title="QRIS & Pembayaran" desc="Dipakai di halaman Traktir dan checkout langganan Kelas Premium" />
-          <div className="p-6">
+          <div className="p-6 space-y-6">
+            <TraktirToggle initialEnabled={settings.traktirEnabled !== false} />
             <QrisForm
               initialQris={settings.qrisString ?? ""}
               initialQrisImageUrl={settings.qrisImageUrl ?? ""}

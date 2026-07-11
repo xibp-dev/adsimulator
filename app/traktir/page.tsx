@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -38,18 +39,25 @@ export default function TraktirPage() {
   const [copied, setCopied] = useState(false);
   const [qrisImageUrl, setQrisImageUrl] = useState("");
   const [siteSettingsLoaded, setSiteSettingsLoaded] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const router = useRouter();
 
-  useState(() => {
+  useEffect(() => {
     fetch("/api/qris/settings")
       .then((res) => res.json())
       .then((data) => {
-        if (data.qrisImageUrl) {
-          setQrisImageUrl(data.qrisImageUrl);
+        if (data.traktirEnabled === false) {
+          setBlocked(true);
+          router.replace("/");
+          return;
         }
+        if (data.qrisImageUrl) setQrisImageUrl(data.qrisImageUrl);
         setSiteSettingsLoaded(true);
       })
       .catch(() => setSiteSettingsLoaded(true));
-  });
+  }, [router]);
+
+  if (blocked) return null;
 
   const numericAmount = typeof amount === "number" ? amount : 0;
 

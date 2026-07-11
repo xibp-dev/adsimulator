@@ -6,8 +6,9 @@ export async function GET(req: NextRequest) {
     const settings = await getSiteSettings();
     return NextResponse.json({
       qrisImageUrl: settings.qrisImageUrl || "",
+      traktirEnabled: settings.traktirEnabled !== false,
     });
   } catch (err: any) {
-    return NextResponse.json({ qrisImageUrl: "" });
+    return NextResponse.json({ qrisImageUrl: "", traktirEnabled: true });
   }
 }

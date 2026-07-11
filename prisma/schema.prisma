@@ -157,6 +157,7 @@ model SiteSettings {
   certSignatoryTitle String @default("Penyelenggara")
   certLogoUrl        String @default("")
   certAccent         String @default("#0866FF")
+  traktirEnabled     Boolean @default(true)
   updatedAt   DateTime @updatedAt
 }
 

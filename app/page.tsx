@@ -532,7 +532,9 @@ export default async function HomePage() {
             <div className="flex items-center gap-6">
               <Link href="/login" className="hover:text-white transition-colors">Masuk</Link>
               <Link href="/register" className="hover:text-white transition-colors">Daftar</Link>
-              <Link href="/traktir" className="hover:text-white transition-colors">☕ Traktir</Link>
+              {settings.traktirEnabled !== false && (
+                <Link href="/traktir" className="hover:text-white transition-colors">☕ Traktir</Link>
+              )}
               <span>
                 &copy; {new Date().getFullYear()}{" "}
                 <a

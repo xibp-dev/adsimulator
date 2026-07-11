@@ -22,6 +22,7 @@ export interface SiteSettings {
   certSignatoryTitle: string;
   certLogoUrl: string;
   certAccent: string;
+  traktirEnabled: boolean;
   updatedAt: string;
 }
 
@@ -45,6 +46,7 @@ const DEFAULTS: SiteSettings = {
   certSignatoryTitle: "Penyelenggara",
   certLogoUrl: "",
   certAccent: "#0866FF",
+  traktirEnabled: true,
   updatedAt: new Date().toISOString(),
 };
 
