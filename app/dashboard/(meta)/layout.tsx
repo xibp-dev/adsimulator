@@ -1,20 +1,16 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getSiteSettings } from "@/lib/siteSettings";
+import { getAdAccount } from "@/lib/adAccount";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [settings, { data: adAccount }] = await Promise.all([
+  const [settings, adAccount] = await Promise.all([
     getSiteSettings(),
-    supabase
-      .from("AdAccount")
-      .select("*")
-      .eq("userId", session.user.id)
-      .single(),
+    getAdAccount(session.user.id),
   ]);
 
   return (
@@ -24,6 +20,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
       balance={adAccount?.balance ?? 0}
       currency={adAccount?.currency ?? "IDR"}
       logoUrl={settings?.logoUrl ?? ""}
+      qrisImageUrl={settings?.qrisImageUrl ?? ""}
+      traktirEnabled={settings?.traktirEnabled !== false}
     >
       {children}
     </DashboardLayout>

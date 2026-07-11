@@ -3,18 +3,24 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   Plus, Copy, Edit2, Trash2, Download, Columns,
   ChevronDown, TrendingUp, Eye, X,
-  Loader2, Save
+  Loader2
 } from "lucide-react";
 import { CampaignObjective, CampaignStatus } from "@/types";
 import { formatCurrency, formatNumber } from "@/lib/simulate";
 import { OBJECTIVE_INFO } from "@/lib/mockData";
 import StatusBadge from "@/components/ui/StatusBadge";
 import StatusToggle from "@/components/ui/StatusToggle";
-import AdPreviewPanel from "@/components/create/AdPreviewPanel";
 import type { CampaignFormData } from "@/components/create/CreateCampaignFlow";
+
+// Lazy: hanya dimuat saat user membuka preview iklan
+const AdPreviewPanel = dynamic(() => import("@/components/create/AdPreviewPanel"), {
+  ssr: false,
+  loading: () => <div className="py-10 text-center text-sm text-gray-400">Memuat preview…</div>,
+});
 
 interface Campaign {
   id: string;
@@ -149,328 +155,6 @@ function DeleteConfirmModal({
   );
 }
 
-/* ── Edit Campaign Modal ── */
-function EditCampaignModal({
-  campaign,
-  onSave,
-  onClose,
-}: {
-  campaign: Campaign;
-  onSave: (updated: Campaign) => void;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(campaign.name);
-  const [budgetType, setBudgetType] = useState(campaign.budgetType);
-  const [budgetAmount, setBudgetAmount] = useState(String(campaign.budgetAmount));
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/campaigns/${campaign.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, budgetType, budgetAmount: parseFloat(budgetAmount) || 0 }),
-      });
-      if (!res.ok) throw new Error("Gagal menyimpan");
-      const data = await res.json();
-      onSave({ ...campaign, ...data });
-    } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2]">
-          <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Kampanye</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Kampanye</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Jenis Anggaran</label>
-            <select
-              value={budgetType}
-              onChange={(e) => setBudgetType(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            >
-              <option value="DAILY">Harian</option>
-              <option value="LIFETIME">Seumur Hidup</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Jumlah Anggaran (Rp)</label>
-            <input
-              type="number"
-              min={0}
-              value={budgetAmount}
-              onChange={(e) => setBudgetAmount(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            />
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <div className="flex gap-3 justify-end pt-1">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33]">Batal</button>
-            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white rounded-lg font-semibold disabled:opacity-50">
-              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              Simpan
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-/* ── Edit AdSet Modal ── */
-function EditAdSetModal({
-  adSet,
-  onSave,
-  onClose,
-}: {
-  adSet: AdSet;
-  onSave: (updated: AdSet) => void;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(adSet.name);
-  const [budgetType, setBudgetType] = useState(adSet.budgetType);
-  const [budgetAmount, setBudgetAmount] = useState(String(adSet.budgetAmount));
-  const [scheduleStart, setScheduleStart] = useState(adSet.scheduleStart ? adSet.scheduleStart.slice(0, 10) : "");
-  const [scheduleEnd, setScheduleEnd] = useState(adSet.scheduleEnd ? adSet.scheduleEnd.slice(0, 10) : "");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/adsets/${adSet.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          budgetType,
-          budgetAmount: parseFloat(budgetAmount) || 0,
-          scheduleStart: scheduleStart || undefined,
-          scheduleEnd: scheduleEnd || null,
-        }),
-      });
-      if (!res.ok) throw new Error("Gagal menyimpan");
-      const data = await res.json();
-      onSave({ ...adSet, ...data });
-    } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2]">
-          <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Set Iklan</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Set Iklan</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Jenis Anggaran</label>
-            <select
-              value={budgetType}
-              onChange={(e) => setBudgetType(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            >
-              <option value="DAILY">Harian</option>
-              <option value="LIFETIME">Seumur Hidup</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Jumlah Anggaran (Rp)</label>
-            <input
-              type="number"
-              min={0}
-              value={budgetAmount}
-              onChange={(e) => setBudgetAmount(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Mulai</label>
-            <input
-              type="date"
-              value={scheduleStart}
-              onChange={(e) => setScheduleStart(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Tanggal Berakhir (opsional)</label>
-            <input
-              type="date"
-              value={scheduleEnd}
-              onChange={(e) => setScheduleEnd(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            />
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <div className="flex gap-3 justify-end pt-1">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33]">Batal</button>
-            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white rounded-lg font-semibold disabled:opacity-50">
-              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              Simpan
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-/* ── Edit Ad Modal ── */
-const CTA_OPTIONS = ["LEARN_MORE", "SHOP_NOW", "SIGN_UP", "BOOK_NOW", "CONTACT_US", "DOWNLOAD", "GET_OFFER", "GET_QUOTE", "SUBSCRIBE", "WATCH_MORE"];
-
-function EditAdModal({
-  ad,
-  onSave,
-  onClose,
-}: {
-  ad: Ad;
-  onSave: (updated: Ad) => void;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(ad.name);
-  const [primaryText, setPrimaryText] = useState(ad.primaryText);
-  const [headline, setHeadline] = useState(ad.headline);
-  const [cta, setCta] = useState(ad.cta);
-  const [destinationUrl, setDestinationUrl] = useState(ad.destinationUrl);
-  const [mediaUrl, setMediaUrl] = useState(ad.mediaUrls[0] ?? "");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const mediaUrls = mediaUrl ? [mediaUrl] : [];
-      const res = await fetch(`/api/ads/${ad.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, primaryText, headline, cta, destinationUrl, mediaUrls }),
-      });
-      if (!res.ok) throw new Error("Gagal menyimpan");
-      const data = await res.json();
-      onSave({ ...ad, ...data });
-    } catch {
-      setError("Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 border-b border-[#dddfe2] sticky top-0 bg-white">
-          <h2 className="font-semibold text-[#1c2b33] text-sm">Edit Iklan</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Nama Iklan</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Teks Utama</label>
-            <textarea
-              value={primaryText}
-              onChange={(e) => setPrimaryText(e.target.value)}
-              rows={3}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30 resize-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Judul</label>
-            <input
-              value={headline}
-              onChange={(e) => setHeadline(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">CTA</label>
-            <select
-              value={cta}
-              onChange={(e) => setCta(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-            >
-              {CTA_OPTIONS.map((c) => (
-                <option key={c} value={c}>{c.replace(/_/g, " ")}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">URL Tujuan</label>
-            <input
-              value={destinationUrl}
-              onChange={(e) => setDestinationUrl(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-              placeholder="https://..."
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">URL Gambar/Video</label>
-            <input
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-              className="w-full border border-[#dddfe2] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30"
-              placeholder="https://..."
-            />
-          </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <div className="flex gap-3 justify-end pt-1">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-[#dddfe2] rounded-lg hover:bg-gray-50 text-[#1c2b33]">Batal</button>
-            <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0866FF] hover:bg-[#0757d4] text-white rounded-lg font-semibold disabled:opacity-50">
-              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              Simpan
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 /* ── Main Component ── */
 export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
   const router = useRouter();
@@ -481,11 +165,6 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(false);
   const [previewAd, setPreviewAd] = useState<Ad | null>(null);
-
-  // Edit modals
-  const [editCampaign, setEditCampaign] = useState<Campaign | null>(null);
-  const [editAdSet, setEditAdSet] = useState<AdSet | null>(null);
-  const [editAd, setEditAd] = useState<Ad | null>(null);
 
   // Delete modals
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type: Tab } | null>(null);
@@ -1057,38 +736,6 @@ export default function CampaignTable({ campaigns: initialCampaigns }: Props) {
 
       {/* Ad Preview Modal */}
       {previewAd && <AdPreviewModal ad={previewAd} onClose={() => setPreviewAd(null)} />}
-
-      {/* Edit Modals */}
-      {editCampaign && (
-        <EditCampaignModal
-          campaign={editCampaign}
-          onSave={(updated) => {
-            setCampaigns((prev) => prev.map((c) => c.id === updated.id ? { ...c, ...updated } : c));
-            setEditCampaign(null);
-          }}
-          onClose={() => setEditCampaign(null)}
-        />
-      )}
-      {editAdSet && (
-        <EditAdSetModal
-          adSet={editAdSet}
-          onSave={(updated) => {
-            setAdSets((prev) => prev.map((a) => a.id === updated.id ? { ...a, ...updated } : a));
-            setEditAdSet(null);
-          }}
-          onClose={() => setEditAdSet(null)}
-        />
-      )}
-      {editAd && (
-        <EditAdModal
-          ad={editAd}
-          onSave={(updated) => {
-            setAds((prev) => prev.map((a) => a.id === updated.id ? { ...a, ...updated } : a));
-            setEditAd(null);
-          }}
-          onClose={() => setEditAd(null)}
-        />
-      )}
 
       {/* Single Delete Confirm */}
       {deleteTarget && (

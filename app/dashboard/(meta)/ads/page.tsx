@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getAdAccount } from "@/lib/adAccount";
 import AdTable from "@/components/dashboard/AdTable";
 import PrerequisiteWarning from "@/components/dashboard/PrerequisiteWarning";
 
@@ -8,10 +9,11 @@ export default async function AdsPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  // Check prerequisites — paralel
-  const [{ count: portfoliosCount }, { count: pagesCount }] = await Promise.all([
-    supabase.from("BusinessPortfolio").select("*", { count: "exact", head: true }).eq("userId", session.user.id),
-    supabase.from("Fanspage").select("*", { count: "exact", head: true }).eq("userId", session.user.id),
+  // Check prerequisites + akun iklan — paralel (getAdAccount di-dedupe dengan layout)
+  const [{ count: portfoliosCount }, { count: pagesCount }, adAccount] = await Promise.all([
+    supabase.from("BusinessPortfolio").select("id", { count: "exact", head: true }).eq("userId", session.user.id),
+    supabase.from("Fanspage").select("id", { count: "exact", head: true }).eq("userId", session.user.id),
+    getAdAccount(session.user.id),
   ]);
 
   const hasPortfolio = (portfoliosCount ?? 0) > 0;
@@ -20,12 +22,6 @@ export default async function AdsPage() {
   if (!hasPortfolio || !hasPage) {
     return <PrerequisiteWarning hasPortfolio={hasPortfolio} hasPage={hasPage} />;
   }
-
-  const { data: adAccount } = await supabase
-    .from("AdAccount")
-    .select("id")
-    .eq("userId", session.user.id)
-    .single();
 
   if (!adAccount) {
     return <AdTable ads={[]} />;
@@ -88,9 +84,10 @@ export default async function AdsPage() {
   if (adIds.length > 0) {
     const { data: allMetrics } = await supabase
       .from("SimMetrics")
-      .select("*")
+      .select("entityId, date, reach, impressions, results, costPerResult, amountSpent, ctr, cpm, frequency")
       .eq("entityType", "ad")
-      .in("entityId", adIds);
+      .in("entityId", adIds)
+      .gte("date", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
 
     if (allMetrics) {
       allMetrics.forEach((m: any) => {

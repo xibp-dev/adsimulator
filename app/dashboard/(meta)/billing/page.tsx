@@ -50,9 +50,6 @@ export default function BillingPage() {
 
   const fetchBillingData = async () => {
     try {
-      // We can fetch data from existing API routes or perform lightweight inline fetches
-      const resAccount = await fetch("/api/campaigns"); // To check session and indirectly get account info if we want, or we can make a custom endpoint
-      // Let's create a quick API fetch for billing information
       const resBilling = await fetch("/api/billing/data");
       if (resBilling.ok) {
         const data = await resBilling.json();
@@ -60,6 +57,7 @@ export default function BillingPage() {
         setCampaigns(data.campaigns);
         setTotalSpent(data.totalSpent);
         setStatements(data.statements);
+        setHasPortfolio(data.hasPortfolio === true);
       }
     } catch (e) {
       console.error(e);
@@ -69,18 +67,6 @@ export default function BillingPage() {
   };
 
   useEffect(() => {
-    const checkPortfolio = async () => {
-      try {
-        const res = await fetch("/api/portfolio");
-        if (res.ok) {
-          const data = await res.json();
-          setHasPortfolio(data.length > 0);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    checkPortfolio();
     fetchBillingData();
   }, []);
 

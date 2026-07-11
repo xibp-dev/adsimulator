@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getAdAccount } from "@/lib/adAccount";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import PrerequisiteWarning from "@/components/dashboard/PrerequisiteWarning";
 
@@ -8,10 +9,11 @@ export default async function AccountOverviewPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  // Check prerequisites — paralel
-  const [{ count: portfoliosCount }, { count: pagesCount }] = await Promise.all([
-    supabase.from("BusinessPortfolio").select("*", { count: "exact", head: true }).eq("userId", session.user.id),
-    supabase.from("Fanspage").select("*", { count: "exact", head: true }).eq("userId", session.user.id),
+  // Check prerequisites + akun iklan — paralel (getAdAccount di-dedupe dengan layout)
+  const [{ count: portfoliosCount }, { count: pagesCount }, adAccount] = await Promise.all([
+    supabase.from("BusinessPortfolio").select("id", { count: "exact", head: true }).eq("userId", session.user.id),
+    supabase.from("Fanspage").select("id", { count: "exact", head: true }).eq("userId", session.user.id),
+    getAdAccount(session.user.id),
   ]);
 
   const hasPortfolio = (portfoliosCount ?? 0) > 0;
@@ -20,12 +22,6 @@ export default async function AccountOverviewPage() {
   if (!hasPortfolio || !hasPage) {
     return <PrerequisiteWarning hasPortfolio={hasPortfolio} hasPage={hasPage} />;
   }
-
-  const { data: adAccount } = await supabase
-    .from("AdAccount")
-    .select("*")
-    .eq("userId", session.user.id)
-    .single();
 
   if (!adAccount) {
     return <div className="p-6">Akun tidak ditemukan.</div>;
@@ -36,21 +32,24 @@ export default async function AccountOverviewPage() {
     .select("id")
     .eq("adAccountId", adAccount.id);
 
-  const campaignIds = (campaigns || []).map((c: any) => c.id);
+  const campaignIds = (campaigns || []).map((c: { id: string }) => c.id);
 
   let chartData: any[] = [];
   let totals = { reach: 0, impressions: 0, results: 0, amountSpent: 0 };
 
   if (campaignIds.length > 0) {
-    const { data: last7Days } = await supabase
+    // Batasi 30 hari terakhir agar query tidak membesar seiring umur akun
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentMetrics } = await supabase
       .from("SimMetrics")
-      .select("*")
+      .select("date, reach, impressions, results, amountSpent")
       .eq("entityType", "campaign")
       .in("entityId", campaignIds)
+      .gte("date", since)
       .order("date", { ascending: true });
 
     const byDate: Record<string, { reach: number; impressions: number; results: number; amountSpent: number }> = {};
-    (last7Days || []).forEach((m: any) => {
+    (recentMetrics || []).forEach((m: any) => {
       const key = new Date(m.date).toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
       if (!byDate[key]) byDate[key] = { reach: 0, impressions: 0, results: 0, amountSpent: 0 };
       byDate[key].reach += m.reach;
@@ -71,5 +70,5 @@ export default async function AccountOverviewPage() {
     );
   }
 
-  return <PerformanceChart data={chartData} totals={totals} balance={adAccount.balance} currency={adAccount.currency} />;
+  return <PerformanceChart data={chartData} totals={totals} balance={adAccount.balance} currency={adAccount.currency ?? "IDR"} />;
 }

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import TopBar from "./TopBar";
 import Sidebar from "./Sidebar";
-import Link from "next/link";
 import TraktirModal from "../ui/TraktirModal";
 import DraggableTraktir from "../ui/DraggableTraktir";
 
@@ -14,24 +13,14 @@ interface DashboardLayoutProps {
   balance: number;
   currency?: string;
   logoUrl?: string;
+  qrisImageUrl?: string;
+  traktirEnabled?: boolean;
 }
 
-export default function DashboardLayout({ children, userName, accountName, balance, currency, logoUrl }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, userName, accountName, balance, currency, logoUrl, qrisImageUrl = "", traktirEnabled = false }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isTraktirOpen, setIsTraktirOpen] = useState(false);
-  const [qrisImageUrl, setQrisImageUrl] = useState("");
-
-  useEffect(() => {
-    fetch("/api/qris/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.qrisImageUrl) {
-          setQrisImageUrl(data.qrisImageUrl);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-[#f0f2f5] overflow-hidden relative">
@@ -70,15 +59,17 @@ export default function DashboardLayout({ children, userName, accountName, balan
         </main>
       </div>
 
-      {/* Floating Draggable Traktir Badge — bisa digeser ke mana saja */}
-      <DraggableTraktir onClick={() => setIsTraktirOpen(true)} />
-
-      {/* Traktir Modal Component */}
-      <TraktirModal
-        isOpen={isTraktirOpen}
-        onClose={() => setIsTraktirOpen(false)}
-        qrisImageUrl={qrisImageUrl}
-      />
+      {/* Floating Traktir Badge + Modal — hanya bila fitur diaktifkan admin */}
+      {traktirEnabled && (
+        <>
+          <DraggableTraktir onClick={() => setIsTraktirOpen(true)} />
+          <TraktirModal
+            isOpen={isTraktirOpen}
+            onClose={() => setIsTraktirOpen(false)}
+            qrisImageUrl={qrisImageUrl}
+          />
+        </>
+      )}
     </div>
   );
 }

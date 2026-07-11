@@ -45,9 +45,10 @@ export async function GET() {
   const campaignIds = (campaigns ?? []).map((c: any) => c.id);
   if (campaignIds.length === 0) return NextResponse.json([]);
 
+  // Hanya kolom yang dirender tabel — hindari kirim blob targeting JSON
   const { data: adSets } = await supabase
     .from("AdSet")
-    .select("*")
+    .select("id, name, campaignId, status, budgetType, budgetAmount, scheduleStart, scheduleEnd, createdAt")
     .in("campaignId", campaignIds)
     .order("createdAt", { ascending: false })
     .limit(200);

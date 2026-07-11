@@ -56,7 +56,12 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
   if (adSetIds.length > 0) {
     const [{ data: allAds }, { data: allMetrics }] = await Promise.all([
       supabase.from("Ad").select("id, adSetId").in("adSetId", adSetIds),
-      supabase.from("SimMetrics").select("*").eq("entityType", "adset").in("entityId", adSetIds),
+      supabase
+        .from("SimMetrics")
+        .select("entityId, date, reach, impressions, results, costPerResult, amountSpent, ctr, cpm, frequency")
+        .eq("entityType", "adset")
+        .in("entityId", adSetIds)
+        .gte("date", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
     ]);
     (allAds ?? []).forEach((ad: any) => {
       adsCountBySet[ad.adSetId] = (adsCountBySet[ad.adSetId] ?? 0) + 1;

@@ -1,117 +1,141 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
 import { evaluateAd } from "@/lib/evaluate";
 import { simulateDailyMetrics } from "@/lib/simulate";
 import { randomUUID } from "crypto";
 
-// This endpoint can be called periodically (e.g. via cron or manually via a button)
-// to process IN_REVIEW ads and transition them to ACTIVE or REJECTED.
+// Proses iklan IN_REVIEW milik user yang sedang login → ACTIVE/REJECTED.
+// Dipanggil saat membuka Kelola Iklan. Semua operasi DB dibatch agar ringan.
 export async function GET() {
   try {
-    // 1. Fetch ads that are IN_REVIEW
-    // In a real scenario, we might check if they have been in review for > 5 mins
-    // For the simulator, we will just process all IN_REVIEW ads that are at least 1 minute old
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Akun iklan milik user — sekaligus dipakai untuk update saldo di akhir
+    const { data: account } = await supabase
+      .from("AdAccount")
+      .select("id, balance")
+      .eq("userId", session.user.id)
+      .maybeSingle();
+
+    if (!account) {
+      return NextResponse.json({ message: "No ads pending review.", processedIds: [] });
+    }
+
+    // Hanya iklan IN_REVIEW milik akun ini (inner join agar filter nested bekerja)
     const { data: adsInReview, error: fetchError } = await supabase
       .from("Ad")
-      .select("*, adSet:AdSet(*, campaign:Campaign(*))")
-      .eq("status", "IN_REVIEW");
+      .select(
+        "id, headline, primaryText, description, adSet:AdSet!inner(id, campaignId, budgetAmount, budgetType, ageMin, ageMax, advantagePlacementsOn, locations, campaign:Campaign!inner(id, adAccountId, objective, budgetAmount))"
+      )
+      .eq("status", "IN_REVIEW")
+      .eq("adSet.campaign.adAccountId", account.id);
 
     if (fetchError) throw fetchError;
     if (!adsInReview || adsInReview.length === 0) {
-      return NextResponse.json({ message: "No ads pending review." });
+      return NextResponse.json({ message: "No ads pending review.", processedIds: [] });
     }
 
-    const processedIds = [];
+    const processedIds: string[] = [];
+    const adUpdates: PromiseLike<unknown>[] = [];
+    const metricRows: Record<string, unknown>[] = [];
+    const activatedAdSetIds = new Set<string>();
+    let totalSpent = 0;
+    const now = new Date().toISOString();
 
     for (const ad of adsInReview) {
-      // 2. Evaluate Ad Copy
       const evaluation = evaluateAd({
         headline: ad.headline || "",
         primaryText: ad.primaryText || "",
-        description: ad.description || ""
+        description: ad.description || "",
       });
 
-      // 3. Update Ad Status & Evaluation Result
-      await supabase
-        .from("Ad")
-        .update({
-          status: evaluation.status,
+      adUpdates.push(
+        supabase
+          .from("Ad")
+          .update({
+            status: evaluation.status,
+            qualityScore: evaluation.qualityScore,
+            rejectionReason: evaluation.rejectionReason || null,
+            updatedAt: now,
+          })
+          .eq("id", ad.id)
+          .then()
+      );
+
+      const adSet = Array.isArray(ad.adSet) ? ad.adSet[0] : ad.adSet;
+      const campaign = adSet && (Array.isArray(adSet.campaign) ? adSet.campaign[0] : adSet.campaign);
+
+      if (evaluation.status === "ACTIVE" && adSet && campaign) {
+        const locations = adSet.locations ? JSON.parse(adSet.locations as string) : [];
+
+        const metrics = simulateDailyMetrics({
+          budgetAmount: adSet.budgetAmount || campaign.budgetAmount,
+          budgetType: adSet.budgetType as "DAILY" | "LIFETIME",
+          objective: campaign.objective as import("@/types").CampaignObjective,
+          ageMin: adSet.ageMin,
+          ageMax: adSet.ageMax,
+          advantagePlacementsOn: adSet.advantagePlacementsOn,
+          locations,
           qualityScore: evaluation.qualityScore,
-          rejectionReason: evaluation.rejectionReason || null,
-          updatedAt: new Date().toISOString()
-        })
-        .eq("id", ad.id);
+        });
 
-      // If ad is approved, generate initial metrics based on qualityScore
-      if (evaluation.status === "ACTIVE" && ad.adSet) {
-        const adSet = Array.isArray(ad.adSet) ? ad.adSet[0] : ad.adSet;
-        const campaign = Array.isArray(adSet.campaign) ? adSet.campaign[0] : adSet.campaign;
+        const baseMetric = {
+          reach: metrics.reach,
+          impressions: metrics.impressions,
+          results: metrics.results,
+          costPerResult: metrics.costPerResult,
+          amountSpent: metrics.amountSpent,
+          ctr: metrics.ctr,
+          cpm: metrics.cpm,
+          frequency: metrics.frequency,
+          date: now,
+        };
 
-        if (adSet && campaign) {
-          const locations = adSet.locations ? JSON.parse(adSet.locations as string) : [];
-          
-          // Generate metrics using the new qualityScore multiplier
-          const metrics = simulateDailyMetrics({
-            budgetAmount: adSet.budgetAmount || campaign.budgetAmount,
-            budgetType: adSet.budgetType as "DAILY" | "LIFETIME",
-            objective: campaign.objective as import("@/types").CampaignObjective,
-            ageMin: adSet.ageMin,
-            ageMax: adSet.ageMax,
-            advantagePlacementsOn: adSet.advantagePlacementsOn,
-            locations,
-            qualityScore: evaluation.qualityScore // Pass the score!
-          });
+        metricRows.push(
+          { id: randomUUID(), entityType: "ad", entityId: ad.id, ...baseMetric },
+          { id: randomUUID(), entityType: "adset", entityId: adSet.id, ...baseMetric },
+          { id: randomUUID(), entityType: "campaign", entityId: adSet.campaignId, ...baseMetric }
+        );
 
-          const baseMetric = {
-            id: randomUUID(),
-            reach: metrics.reach,
-            impressions: metrics.impressions,
-            results: metrics.results,
-            costPerResult: metrics.costPerResult,
-            amountSpent: metrics.amountSpent,
-            ctr: metrics.ctr,
-            cpm: metrics.cpm,
-            frequency: metrics.frequency,
-            date: new Date().toISOString(),
-          };
-
-          await supabase.from("SimMetrics").insert({ entityType: "ad", entityId: ad.id, ...baseMetric, id: randomUUID() });
-          await supabase.from("SimMetrics").insert({ entityType: "adset", entityId: adSet.id, ...baseMetric, id: randomUUID() });
-          await supabase.from("SimMetrics").insert({ entityType: "campaign", entityId: adSet.campaignId, ...baseMetric, id: randomUUID() });
-
-          // Kurangi saldo akun iklan sesuai belanja awal yang disimulasikan
-          if (campaign.adAccountId) {
-            const { data: account } = await supabase
-              .from("AdAccount")
-              .select("id, balance")
-              .eq("id", campaign.adAccountId)
-              .maybeSingle();
-            if (account) {
-              await supabase
-                .from("AdAccount")
-                .update({ balance: Math.max(0, account.balance - metrics.amountSpent) })
-                .eq("id", account.id);
-            }
-          }
-
-          // Update AdSet status to ACTIVE if it has at least one ACTIVE ad
-          await supabase.from("AdSet").update({ status: "ACTIVE" }).eq("id", adSet.id);
-        }
-      } else if (evaluation.status === "REJECTED") {
-        // If rejected, check if AdSet has any other active ads, if not, maybe leave it or mark as rejected?
-        // We'll leave the AdSet as IN_REVIEW for simplicity, or we could mark it REJECTED.
+        totalSpent += metrics.amountSpent;
+        activatedAdSetIds.add(adSet.id);
       }
 
       processedIds.push(ad.id);
     }
 
-    return NextResponse.json({ 
-      message: `Processed ${processedIds.length} ads.`,
-      processedIds 
-    });
+    // Eksekusi semua penulisan sekaligus
+    const writes: PromiseLike<unknown>[] = [...adUpdates];
+    if (metricRows.length > 0) {
+      writes.push(supabase.from("SimMetrics").insert(metricRows).then());
+    }
+    if (activatedAdSetIds.size > 0) {
+      writes.push(
+        supabase.from("AdSet").update({ status: "ACTIVE" }).in("id", [...activatedAdSetIds]).then()
+      );
+    }
+    if (totalSpent > 0) {
+      writes.push(
+        supabase
+          .from("AdAccount")
+          .update({ balance: Math.max(0, account.balance - totalSpent) })
+          .eq("id", account.id)
+          .then()
+      );
+    }
+    await Promise.all(writes);
 
-  } catch (error: any) {
+    return NextResponse.json({
+      message: `Processed ${processedIds.length} ads.`,
+      processedIds,
+    });
+  } catch (error: unknown) {
     console.error("Tick Simulator Error:", error);
-    return NextResponse.json({ error: "Tick Failed", details: error.message }, { status: 500 });
+    const details = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Tick Failed", details }, { status: 500 });
   }
 }
