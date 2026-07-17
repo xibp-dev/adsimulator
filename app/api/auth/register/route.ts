@@ -9,7 +9,8 @@ const registerSchema = z.object({
   email: z.string().email("Format email tidak valid"),
   password: z.string().min(8, "Password minimal 8 karakter"),
   // ref menerima referralCode (kode pendek 6 karakter) bukan UUID langsung
-  referredById: z.string().optional(),
+  // gunakan nullish() agar menerima null, undefined, maupun string
+  referredById: z.string().nullish(),
 });
 
 /** Generate kode referral pendek 6 karakter (huruf kapital + angka) */
@@ -48,7 +49,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const { name, email, password, referredById: refCode } = parsed.data;
+    const { name, email, password, referredById: refCodeRaw } = parsed.data;
+    // Buang null/undefined — perlakukan keduanya sebagai "tidak ada referrer"
+    const refCode = refCodeRaw || null;
 
     // Check if user exists
     const { data: existingUser } = await supabaseAdmin
