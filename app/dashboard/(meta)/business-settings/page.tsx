@@ -998,6 +998,41 @@ export default function BusinessSettingsPage() {
         {/* AKUN INSTAGRAM & WHATSAPP VIEW */}
         {(activeMenu === "akun-instagram" || activeMenu === "akun-whatsapp") && (
           <div className="space-y-6 max-w-4xl">
+            {activeMenu === "akun-instagram" ? (
+              <GuidePanel
+                title="📸 Panduan: Akun Instagram Business"
+                summary="Menghubungkan akun Instagram ke portofolio bisnis memungkinkan iklanmu tampil di platform Instagram (Feed, Stories, Reels, Explore). Tanpa koneksi ini, iklan hanya bisa tampil di ekosistem Facebook."
+                tips={[
+                  {
+                    field: "Username Instagram",
+                    what: "Handle atau nama akun Instagram bisnis kamu yang dimulai dengan @.",
+                    recommendation: "Gunakan akun Instagram Business (bukan personal). Akun bisnis wajib sudah terhubung ke Halaman Facebook terlebih dahulu. Pastikan profil sudah lengkap: foto, bio, dan highlight yang relevan.",
+                  },
+                  {
+                    field: "Manfaat Koneksi Instagram",
+                    what: "Setelah terhubung, nama dan foto profil Instagram-mu akan tampil di iklan Instagram. Audiens yang klik akan diarahkan ke profil Instagram-mu.",
+                    recommendation: "Instagram sangat efektif untuk produk visual (fashion, kuliner, lifestyle, properti). Optimalkan profil Instagram dulu sebelum beriklan: follower, konten reguler, dan engagement rate yang baik meningkatkan kepercayaan audiens terhadap iklanmu.",
+                  },
+                ]}
+              />
+            ) : (
+              <GuidePanel
+                title="💬 Panduan: Akun WhatsApp Business"
+                summary="Menghubungkan WhatsApp Business memungkinkan iklan dengan tombol 'Kirim Pesan' yang langsung membuka chat WhatsApp. Ini adalah salah satu format iklan dengan konversi tertinggi untuk bisnis berbasis komunikasi personal."
+                tips={[
+                  {
+                    field: "Nomor WhatsApp Business",
+                    what: "Nomor telepon yang terdaftar di akun WhatsApp Business kamu. Format: 628XXXXXXXXX (kode negara tanpa +).",
+                    recommendation: "Gunakan nomor WhatsApp Business API untuk volume pesan tinggi. Pastikan nomor aktif 24/7 atau punya respons otomatis yang responsif. Waktu respons yang cepat (< 1 jam) meningkatkan konversi secara signifikan.",
+                  },
+                  {
+                    field: "Pesan Sambutan Otomatis",
+                    what: "Teks yang sudah diisi otomatis saat calon pelanggan klik tombol WhatsApp dari iklan.",
+                    recommendation: "Buat pesan pembuka yang informatif, misal: 'Halo, saya tertarik dengan [Nama Produk] yang saya lihat di iklan. Boleh minta info lebih lanjut?'. Pesan yang spesifik memudahkan tim sales menindaklanjuti.",
+                  },
+                ]}
+              />
+            )}
             <div className="border-b border-[#dddfe2] pb-4">
               <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 {activeMenu === "akun-instagram" ? (
