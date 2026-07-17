@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Megaphone, LayoutGrid, ImagePlay, Users, CreditCard,
   BarChart3, ChevronLeft, ChevronRight, Home, Briefcase, Flag, Cpu, Globe, BookOpen,
-  GraduationCap, Crown, Award
+  GraduationCap, Crown, Award, Video
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,7 @@ const metaItems = [
 const lmsItems = [
   { href: "/dashboard/kelas", label: "Kelas Premium", icon: GraduationCap },
   { href: "/dashboard/sertifikasi", label: "Sertifikasi", icon: Award },
+  { href: "/dashboard/webinar", label: "Webinar", icon: Video },
   { href: "/dashboard/langganan", label: "Langganan", icon: Crown },
 ];
 

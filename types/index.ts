@@ -170,3 +170,49 @@ export interface CreateAdInput {
   cta: CTA;
   destinationUrl: string;
 }
+
+export interface Webinar {
+  id: string;
+  title: string;
+  description: string;
+  speaker: string;
+  schedule: string; // ISO DateTime string
+  meetingLink: string;
+  examPasscode: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lessonCount?: number; // for UI display matching course card structures
+}
+
+export interface WebinarQuestion {
+  id: string;
+  webinarId: string;
+  question: string;
+  options: string; // JSON string
+  correctIndex: number;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface WebinarAttempt {
+  id: string;
+  userId: string;
+  webinarId: string;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  passed: boolean;
+  certNumber: string | null;
+  answers: string; // JSON string
+  createdAt: string;
+}
+
+
+export interface WebinarRegistration {
+  id: string;
+  userId: string;
+  webinarId: string;
+  createdAt: string;
+}
+

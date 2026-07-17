@@ -283,4 +283,61 @@ model ExamAttempt {
   @@index([userId, courseId])
 }
 
+model Webinar {
+  id          String            @id @default(cuid())
+  title       String
+  description String            @default("")
+  speaker     String            @default("")
+  schedule    DateTime
+  meetingLink String            @default("")
+  examPasscode String           @default("")
+  published   Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  questions   WebinarQuestion[]
+  attempts    WebinarAttempt[]
+  registrations WebinarRegistration[]
+}
+
+model WebinarQuestion {
+  id           String   @id @default(cuid())
+  webinarId    String
+  question     String
+  options      String   @default("[]") // JSON string array
+  correctIndex Int      @default(0)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  webinar      Webinar  @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+
+  @@index([webinarId])
+}
+
+model WebinarAttempt {
+  id           String   @id @default(cuid())
+  userId       String
+  webinarId    String
+  score        Int      @default(0)
+  correctCount Int      @default(0)
+  totalCount   Int      @default(0)
+  passed       Boolean  @default(false)
+  certNumber   String?
+  answers      String   @default("[]") // JSON record: { [questionId]: answerIndex }
+  createdAt    DateTime @default(now())
+  webinar      Webinar  @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+
+  @@index([userId, webinarId])
+}
+
+model WebinarRegistration {
+  id        String   @id @default(cuid())
+  userId    String
+  webinarId String
+  createdAt DateTime @default(now())
+  webinar   Webinar  @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, webinarId])
+  @@index([webinarId])
+}
+
+
 
