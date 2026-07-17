@@ -79,26 +79,66 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate kode referral unik untuk user baru ini
-    const newReferralCode = await getUniqueReferralCode();
+    // (akan null jika kolom belum ada di database — aman)
+    let newReferralCode: string | null = null;
+    try {
+      newReferralCode = await getUniqueReferralCode();
+    } catch {
+      // kolom referralCode belum ada — lewati
+    }
 
-    // Insert User
-    const { data: newUser, error: userError } = await supabaseAdmin
+    // Insert User — coba dengan kolom afiliasi, fallback tanpa jika kolom belum ada
+    let newUser: any = null;
+
+    const affiliatePayload = {
+      id: userId,
+      name,
+      email,
+      passwordHash,
+      role: "USER",
+      status: "ACTIVE",
+      referredById: validReferrerId,
+      referralCode: newReferralCode,
+      createdAt: new Date().toISOString()
+    };
+
+    const { data: userWithAffiliate, error: userWithAffiliateError } = await supabaseAdmin
       .from("User")
-      .insert({
-        id: userId,
-        name,
-        email,
-        passwordHash,
-        role: "USER",
-        status: "ACTIVE",
-        referredById: validReferrerId,
-        referralCode: newReferralCode,
-        createdAt: new Date().toISOString()
-      })
+      .insert(affiliatePayload)
       .select()
       .single();
 
-    if (userError) throw userError;
+    if (userWithAffiliateError) {
+      // Jika error karena kolom belum ada, coba insert tanpa kolom afiliasi
+      const isColumnError =
+        userWithAffiliateError.message?.includes("referralCode") ||
+        userWithAffiliateError.message?.includes("referredById") ||
+        userWithAffiliateError.code === "PGRST204" ||
+        userWithAffiliateError.code === "42703";
+
+      if (isColumnError) {
+        const { data: fallbackUser, error: fallbackError } = await supabaseAdmin
+          .from("User")
+          .insert({
+            id: userId,
+            name,
+            email,
+            passwordHash,
+            role: "USER",
+            status: "ACTIVE",
+            createdAt: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (fallbackError) throw fallbackError;
+        newUser = fallbackUser;
+      } else {
+        throw userWithAffiliateError;
+      }
+    } else {
+      newUser = userWithAffiliate;
+    }
 
     // Create Initial Ad Account for the user
     const { error: accountError } = await supabaseAdmin
