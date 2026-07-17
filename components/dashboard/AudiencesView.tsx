@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Users, Sparkles, UserPlus, MoreHorizontal, Trash2, X, Loader2 } from "lucide-react";
 import { MOCK_CUSTOM_AUDIENCES } from "@/lib/mockData";
+import GuidePanel from "@/components/create/GuidePanel";
 
 type AudType = "CUSTOM" | "LOOKALIKE" | "SAVED";
 
@@ -118,6 +119,29 @@ export default function AudiencesView() {
           <Plus className="w-4 h-4" /> Buat pemirsa
         </button>
       </div>
+
+      {/* Guide Panel – Pemirsa */}
+      <GuidePanel
+        title="🎯 Panduan: Pemirsa (Audiences)"
+        summary="Pemirsa adalah kumpulan orang yang ingin kamu targetkan dengan iklan. Meta menawarkan 3 jenis pemirsa utama, masing-masing dengan strategi penggunaan yang berbeda. Membuat pemirsa yang tepat adalah kunci efisiensi biaya iklan."
+        tips={[
+          {
+            field: "Pemirsa Khusus (Custom Audience)",
+            what: "Audiens yang dibuat dari data yang sudah kamu miliki: pengunjung website (via Pixel), daftar pelanggan, orang yang sudah berinteraksi dengan konten Instagram/Facebook, atau penonton video.",
+            recommendation: "Gunakan untuk RETARGETING — menjangkau kembali orang yang sudah kenal brand kamu tapi belum beli. Ini biasanya paling murah dan konversinya paling tinggi. Buat minimal: 'Pengunjung Website 30 hari' dan 'Interaksi Instagram 90 hari'.",
+          },
+          {
+            field: "Pemirsa Serupa (Lookalike Audience)",
+            what: "Meta menganalisis karakteristik pemirsa khusus kamu (source), lalu mencari orang baru yang memiliki profil serupa di seluruh platform. Persentase 1% = paling mirip, 10% = paling luas.",
+            recommendation: "Gunakan Lookalike 1% dari 'Pembeli Terakhir 180 hari' untuk prospecting baru yang paling berkualitas. Mulai dari 1%, baru coba 2-5% jika audiens 1% sudah terlalu kecil. Butuh minimal 100 orang di source audience agar akurat.",
+          },
+          {
+            field: "Pemirsa Tersimpan (Saved Audience)",
+            what: "Kombinasi targeting berdasarkan demografi (usia, gender, lokasi), minat, dan perilaku yang disimpan untuk digunakan berulang kali di berbagai kampanye.",
+            recommendation: "Gunakan untuk cold audience baru yang belum pernah mengenal brand kamu. Simpan kombinasi targeting yang terbukti efektif agar tidak perlu setup ulang setiap buat kampanye baru. Beri nama deskriptif seperti 'Wanita 25-35 Jakarta - Minat Fashion'.",
+          },
+        ]}
+      />
 
       {/* Type cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

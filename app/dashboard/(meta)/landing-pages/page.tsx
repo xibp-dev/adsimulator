@@ -16,6 +16,7 @@ import {
   MousePointerClick
 } from "lucide-react";
 import Link from "next/link";
+import GuidePanel from "@/components/create/GuidePanel";
 
 interface Pixel {
   id: string;
@@ -261,6 +262,44 @@ export default function LandingPagesBuilder() {
           </button>
         )}
       </div>
+
+      {/* Guide Panel – Landing Page Builder */}
+      <GuidePanel
+        title="🌐 Panduan: Custom Landing Page Builder"
+        summary="Landing Page adalah halaman web khusus yang dikunjungi orang setelah mengklik iklanmu. Kualitas landing page sangat menentukan apakah pengunjung jadi beli/daftar atau tidak. Di sini kamu bisa buat landing page terintegrasi langsung dengan Meta Pixel untuk tracking konversi otomatis."
+        tips={[
+          {
+            field: "Nama Landing Page",
+            what: "Label internal untuk membedakan halaman-halamanmu.",
+            recommendation: "Gunakan nama yang menggambarkan kampanye, misal: 'LP - Promo Akhir Tahun Produk A' atau 'LP - Webinar Marketing Digital Juli'. Ini memudahkan kamu saat mengelola banyak landing page.",
+          },
+          {
+            field: "Template Halaman",
+            what: "Desain awal yang bisa dipilih sesuai jenis bisnis: E-Commerce (produk fisik), Lead Form (pendaftaran), atau Simple Article (informasi umum).",
+            recommendation: "E-Commerce: untuk produk dengan harga dan tombol beli. Lead Form: untuk webinar, kursus, atau pendaftaran. Simple Article: untuk konten edukasi yang mengarahkan ke WhatsApp.",
+          },
+          {
+            field: "Integrasi Kode Meta Pixel",
+            what: "Blok kode JavaScript dari Meta Pixel yang ditempelkan di landing page agar setiap kunjungan dan tindakan pengguna terdeteksi oleh Meta.",
+            recommendation: "Salin kode pixel dari menu 'Pixel Tracker', lalu tempel seluruhnya di kolom ini. Jangan edit kode pixel — bahkan satu karakter yang salah bisa mematikan tracking. Setelah tersimpan, verifikasi di Meta Events Manager.",
+          },
+          {
+            field: "Judul & Headline",
+            what: "Judul utama (title) yang muncul di tab browser, dan headline yang besar dan langsung terlihat pengunjung.",
+            recommendation: "Headline harus langsung menyebut manfaat utama atau penawaran terbaik, misal: 'Hemat 50% Hari Ini!' atau 'Belajar Meta Ads dari Nol sampai Mahir'. Hindari headline generik seperti 'Selamat Datang'.",
+          },
+          {
+            field: "Tombol CTA & Event Pixel",
+            what: "Tombol aksi di landing page (misal 'Beli Sekarang') yang sekaligus memicu pengiriman event ke Meta Pixel saat diklik.",
+            recommendation: "Pilih event yang sesuai tujuan: 'Purchase' untuk penjualan, 'Lead' untuk pendaftaran, 'Contact' untuk WhatsApp. Event yang tepat membantu Meta mengoptimalkan kampanye ke orang yang paling mungkin melakukan tindakan tersebut.",
+          },
+          {
+            field: "Gambar Produk",
+            what: "Visual utama yang muncul di landing page. Ini adalah elemen pertama yang dilihat pengunjung.",
+            recommendation: "Gunakan foto produk berkualitas tinggi dengan background putih atau kontras. Resolusi minimal 800x800px. Tambahkan gambar lifestyle (produk dalam penggunaan nyata) untuk meningkatkan kepercayaan.",
+          },
+        ]}
+      />
 
       {showForm && (
         <div className="bg-white border border-[#dddfe2] rounded-xl p-6 shadow-sm space-y-6">
