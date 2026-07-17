@@ -315,10 +315,10 @@ export default function BusinessSettingsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f0f2f5] overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-full bg-[#f0f2f5]">
       
       {/* LEFT COLUMN: Business Manager Navigation (Simulated Sidebar) */}
-      <div className="w-64 bg-white border-r border-[#dddfe2] flex flex-col justify-between flex-shrink-0">
+      <div className="hidden md:flex w-64 bg-white border-r border-[#dddfe2] flex-col justify-between flex-shrink-0">
         <div className="flex flex-col flex-1 overflow-y-auto">
           {/* Header Portfolio Selector */}
           <div className="p-4 border-b border-[#e9ebee] bg-slate-50">
@@ -534,7 +534,25 @@ export default function BusinessSettingsPage() {
       </div>
 
       {/* RIGHT COLUMN: Settings Content Area */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+        {/* Mobile menu switcher */}
+        <div className="md:hidden mb-6 p-4 bg-white border border-[#dddfe2] rounded-xl shadow-sm space-y-1.5">
+          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Pilih Menu Pengaturan</label>
+          <select
+            value={activeMenu}
+            onChange={(e) => setActiveMenu(e.target.value)}
+            className="w-full border border-gray-300 rounded px-2.5 py-1.5 text-xs font-bold focus:outline-none bg-white text-[#1c2b33]"
+          >
+            <option value="info-bisnis">🏢 Info bisnis (Portofolio)</option>
+            <option value="orang">👥 Orang (Pengguna Sistem)</option>
+            <option value="halaman">📱 Halaman (Fanspage)</option>
+            <option value="akun-iklan">💳 Akun Iklan (Ad Accounts)</option>
+            <option value="akun-instagram">📸 Akun Instagram</option>
+            <option value="akun-whatsapp">💬 Akun WhatsApp</option>
+            <option value="pixel">🔮 Pixel / Dataset</option>
+          </select>
+        </div>
+
         {/* INFO BISNIS VIEW */}
         {activeMenu === "info-bisnis" && (
           <div className="space-y-6 max-w-4xl">

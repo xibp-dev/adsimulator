@@ -73,9 +73,9 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
       : igAccounts;
 
   return (
-    <div className="flex gap-0 h-full">
+    <div className="flex flex-col lg:flex-row gap-0 h-full">
       {/* ── Form (left) ── */}
-      <div className={`${showPreview ? "w-full lg:w-[55%]" : "w-full max-w-2xl mx-auto"} px-4 md:px-6 py-4 md:py-6 overflow-y-auto`}>
+      <div className={`${showPreview ? "hidden lg:block lg:w-[55%]" : "w-full max-w-2xl mx-auto"} w-full px-4 md:px-6 py-4 md:py-6 overflow-y-auto`}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-xl font-bold text-[#1c2b33]">Pengaturan iklan</h2>
           <div className="flex items-center gap-2">
@@ -610,7 +610,7 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
 
       {/* ── Preview (right) ── */}
       {showPreview && (
-        <div className="hidden lg:flex lg:w-[45%] flex-col border-l border-[#dddfe2] bg-[#f0f2f5] px-5 py-6 overflow-y-auto sticky top-0 h-screen">
+        <div className="w-full lg:w-[45%] flex flex-col border-t lg:border-t-0 lg:border-l border-[#dddfe2] bg-[#f0f2f5] px-5 py-6 overflow-y-auto h-screen sticky top-0">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
             <Eye className="w-3.5 h-3.5" /> Pratinjau Iklan
           </p>

@@ -219,9 +219,9 @@ export default function StepObjective({ data, selected, onSelect, buyingType, on
           <p className="text-sm font-semibold text-[#1c2b33] mb-3">Pilih tujuan kampanye</p>
         </div>
 
-        <div className="flex border-t border-[#dddfe2]" style={{ minHeight: 320 }}>
+        <div className="flex flex-col md:flex-row border-t border-[#dddfe2]" style={{ minHeight: 320 }}>
           {/* Left: Radio list */}
-          <div className="w-[220px] flex-shrink-0 border-r border-[#dddfe2] py-1">
+          <div className="w-full md:w-[220px] flex-shrink-0 border-b md:border-b-0 md:border-r border-[#dddfe2] py-1">
             {objectives.map((obj) => {
               const isSelected = selected === obj.value;
               return (
@@ -249,7 +249,7 @@ export default function StepObjective({ data, selected, onSelect, buyingType, on
           {/* Right: Detail panel */}
           <div className="flex-1 p-5 flex flex-col">
             {/* Illustration */}
-            <div className="w-28 h-28 mx-auto mb-4">
+            <div className="w-24 h-24 mx-auto mb-4">
               {selectedConfig.illustration}
             </div>
 

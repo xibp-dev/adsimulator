@@ -43,7 +43,7 @@ export default function DashboardLayout({ children, userName, accountName, balan
         {mobileSidebarOpen && (
           <div className="lg:hidden fixed inset-0 z-40">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileSidebarOpen(false)} />
-            <div className="relative h-full">
+            <div className="relative h-full w-fit">
               <Sidebar collapsed={false} onToggle={() => setMobileSidebarOpen(false)} />
             </div>
           </div>
