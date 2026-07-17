@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
 import { z } from "zod";
+import crypto from "crypto";
 
 const patchSchema = z.object({
   action: z.enum(["approve", "reject"]),
@@ -39,6 +40,40 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       note: parsed.data.note ?? sub.note ?? "",
       updatedAt: nowIso,
     };
+
+    // Affiliate Commission Logic (20% of amount)
+    try {
+      const { data: userRecord } = await supabase
+        .from("User")
+        .select("referredById")
+        .eq("id", sub.userId)
+        .single();
+
+      if (userRecord?.referredById && sub.amount > 0) {
+        // Check duplication
+        const { data: existingComm } = await supabase
+          .from("AffiliateCommission")
+          .select("id")
+          .eq("subscriptionId", id)
+          .maybeSingle();
+
+        if (!existingComm) {
+          const commAmount = Math.round(sub.amount * 0.20);
+          await supabase.from("AffiliateCommission").insert({
+            id: crypto.randomUUID(),
+            referrerId: userRecord.referredById,
+            referredUserId: sub.userId,
+            subscriptionId: id,
+            amount: commAmount,
+            status: "APPROVED",
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Affiliate commission creation error:", err);
+    }
   } else {
     update = {
       status: "REJECTED",

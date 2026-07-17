@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Megaphone, LayoutGrid, ImagePlay, Users, CreditCard,
   BarChart3, ChevronLeft, ChevronRight, Home, Briefcase, Flag, Cpu, Globe, BookOpen,
-  GraduationCap, Crown, Award, Video
+  GraduationCap, Crown, Award, Video, Gift
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +38,7 @@ const lmsItems = [
   { href: "/dashboard/sertifikasi", label: "Sertifikasi", icon: Award },
   { href: "/dashboard/webinar", label: "Webinar", icon: Video },
   { href: "/dashboard/langganan", label: "Langganan", icon: Crown },
+  { href: "/dashboard/affiliate", label: "Afiliasi & Komisi", icon: Gift },
 ];
 
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
