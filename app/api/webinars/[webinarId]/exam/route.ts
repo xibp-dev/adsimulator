@@ -32,6 +32,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ web
     return NextResponse.json({ error: "Webinar tidak ditemukan" }, { status: 404 });
   }
 
+  // Cek apakah user sudah pernah mengambil ujian ini
+  const { data: existingAttempt } = await supabase
+    .from("WebinarAttempt")
+    .select("id")
+    .eq("userId", session.user.id)
+    .eq("webinarId", webinarId)
+    .maybeSingle();
+
+  if (existingAttempt) {
+    return NextResponse.json({ error: "Ujian hanya dapat diikuti 1 kali saja." }, { status: 400 });
+  }
+
   // Ambil soal + kunci jawaban
   const { data: questions } = await supabase
     .from("WebinarQuestion")

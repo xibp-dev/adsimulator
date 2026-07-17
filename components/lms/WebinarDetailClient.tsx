@@ -39,7 +39,7 @@ export default function WebinarDetailClient({
   const isExamLockedByPasscode = hasPasscode && !passcodeVerified && !attempts.some((a) => a.passed);
 
   // States for wizard & timer
-  const [examState, setExamState] = useState<"RULES" | "TAKING" | "RESULT">("RULES");
+  const [examState, setExamState] = useState<"RULES" | "TAKING" | "RESULT">(() => attempts.length > 0 ? "RESULT" : "RULES");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(20);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
@@ -421,10 +421,6 @@ export default function WebinarDetailClient({
                   className="w-full inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl">
                   <ShieldCheck className="w-4 h-4" /> Lihat & Cetak Sertifikat
                 </Link>
-                <button onClick={handleRetryExam}
-                  className="w-full inline-flex items-center justify-center gap-1 bg-white border border-gray-200 text-gray-500 hover:text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl">
-                  <RotateCcw className="w-3.5 h-3.5" /> Ulangi Ujian (Opsional)
-                </button>
               </div>
             ) : examState === "RESULT" && lastScore !== null ? (
               /* 5. Gagal */
@@ -433,11 +429,10 @@ export default function WebinarDetailClient({
                 <div className="space-y-1.5 text-slate-800">
                   <h3 className="font-bold text-amber-950 text-base">Belum Lulus</h3>
                   <p className="text-xs text-amber-800">Skor: <b>{lastScore}%</b>. Minimal 80% untuk lulus.</p>
+                  <p className="text-[11px] text-red-650 bg-red-50/50 border border-red-200/50 rounded-xl p-3.5 mt-2.5 font-semibold text-red-700 leading-normal">
+                    ⚠️ Ujian ini hanya dapat dikerjakan 1 kali saja dan kesempatan Anda telah habis.
+                  </p>
                 </div>
-                <button onClick={handleRetryExam}
-                  className="w-full inline-flex items-center justify-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-xs font-bold px-4 py-2.5 rounded-xl">
-                  <RotateCcw className="w-4 h-4" /> Ulangi Ujian
-                </button>
               </div>
             ) : examState === "RULES" ? (
               /* 6. Aturan Ujian */
