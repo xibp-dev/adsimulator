@@ -9,6 +9,7 @@ import {
 } from "@/lib/mockData";
 import { formatCurrency } from "@/lib/simulate";
 import { X, Search } from "lucide-react";
+import GuidePanel from "./GuidePanel";
 
 interface Props {
   data: CampaignFormData;
@@ -92,6 +93,49 @@ export default function StepAdSet({ data, onChange, onNext }: Props) {
       <p className="text-sm text-gray-500 mb-6">Tentukan siapa yang melihat iklan, di mana, dan berapa anggarannya.</p>
 
       <div className="space-y-5">
+        {/* Guide Panel – Langkah 3: Ad Set */}
+        <GuidePanel
+          title="🎯 Panduan: Pengaturan Set Iklan (Ad Set)"
+          summary="Ad Set adalah lapisan tengah. Di sini kamu menentukan SIAPA yang akan melihat iklanmu (targeting), DI MANA iklan muncul (placement), dan KAPAN/BERAPA BANYAK anggaran yang dipakai. Satu kampanye bisa berisi banyak Ad Set untuk menguji berbagai audiens."
+          tips={[
+            {
+              field: "Nama Set Iklan",
+              what: "Label identifikasi ad set ini.",
+              recommendation: "Gunakan nama yang mencerminkan audiens atau strategi, misal: 'Lookalike - Pembeli 30 hari' atau 'Interest - Kuliner Bandung 25-35'. Ini memudahkan analisis performa.",
+            },
+            {
+              field: "Lokasi Konversi",
+              what: "Di mana kamu ingin orang mengambil tindakan setelah melihat iklan: Website, Aplikasi, WhatsApp, dll.",
+              recommendation: "Pilih 'Website' jika punya landing page/toko online. Pilih 'WhatsApp' untuk bisnis yang lebih suka komunikasi personal. Selalu pasangkan dengan pixel untuk tracking yang akurat.",
+            },
+            {
+              field: "Audiens & Targeting",
+              what: "Siapa yang akan melihat iklanmu. Termasuk usia, gender, lokasi, minat (interests), dan perilaku (behaviors).",
+              recommendation: "Untuk cold audience, gunakan Detailed Targeting dengan minat yang relevan. Ukuran audiens ideal: 500rb - 5 juta orang. Terlalu sempit = iklan mahal, terlalu luas = tidak relevan.",
+            },
+            {
+              field: "Lokasi (Geotargeting)",
+              what: "Negara, provinsi, kota, atau radius spesifik tempat iklan ditampilkan.",
+              recommendation: "Targetkan kota-kota dengan daya beli tinggi terlebih dahulu (Jakarta, Surabaya, Bandung, Medan). Untuk bisnis lokal, gunakan radius targeting dari alamat toko.",
+            },
+            {
+              field: "Penempatan (Placement)",
+              what: "Di mana iklan muncul: Feed Facebook, Instagram Stories, Reels, Audience Network, dll.",
+              recommendation: "Gunakan 'Advantage+ Placements' untuk biarkan Meta memilih penempatan terbaik. Jika produkmu sangat visual, pilih manual dan fokus di Instagram Feed + Reels.",
+            },
+            {
+              field: "Pixel Meta",
+              what: "Kode tracking yang dipasang di website untuk mengukur tindakan pengunjung (beli, daftar, dll). Wajib untuk objective konversi.",
+              recommendation: "Pastikan pixel sudah aktif dan event 'Purchase' atau 'Lead' terverifikasi di Events Manager sebelum menjalankan kampanye konversi.",
+            },
+            {
+              field: "Anggaran & Jadwal",
+              what: "Berapa yang dibelanjakan per hari atau total, dan kapan kampanye mulai/berakhir.",
+              recommendation: "Jalankan iklan setidaknya 7 hari tanpa perubahan agar Meta punya cukup data untuk belajar (fase learning). Jangan ubah anggaran lebih dari 30% sekaligus.",
+            },
+          ]}
+        />
+
         {/* Nama set iklan */}
         <section className="bg-white rounded-xl border border-[#dddfe2] p-5">
           <label className="block text-sm font-semibold text-[#1c2b33] mb-1.5">Nama set iklan</label>

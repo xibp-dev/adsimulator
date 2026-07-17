@@ -4,6 +4,7 @@ import { CampaignFormData } from "./CreateCampaignFlow";
 import { OBJECTIVE_INFO, SPECIAL_AD_CATEGORIES } from "@/lib/mockData";
 import { formatCurrency } from "@/lib/simulate";
 import { AlertTriangle, ExternalLink } from "lucide-react";
+import GuidePanel from "./GuidePanel";
 
 interface Props {
   data: CampaignFormData;
@@ -41,6 +42,34 @@ export default function StepCampaign({ data, onChange, onNext }: Props) {
       </p>
 
       <div className="space-y-5">
+        {/* Guide Panel – Langkah 2: Pengaturan Kampanye */}
+        <GuidePanel
+          title="📊 Panduan: Pengaturan Kampanye (Campaign)"
+          summary="Level Kampanye adalah lapisan teratas dalam struktur iklan Meta. Di sini kamu mengatur nama, kategori, dan anggaran keseluruhan. Satu kampanye bisa punya banyak Ad Set di dalamnya."
+          tips={[
+            {
+              field: "Nama Kampanye",
+              what: "Label identifikasi kampanye kamu di Meta Ads Manager.",
+              recommendation: "Gunakan nama yang deskriptif dan mudah dilacak, misalnya: 'Juli2025 - Traffic - Website Produk A'. Hindari nama generik seperti 'Kampanye 1'.",
+            },
+            {
+              field: "Kategori Iklan Khusus",
+              what: "Deklarasi wajib jika iklanmu menyentuh topik sensitif: kredit, pekerjaan, perumahan, atau isu sosial/politik. Meta mengharuskan ini untuk kepatuhan regulasi.",
+              recommendation: "Jika iklanmu adalah produk/jasa biasa seperti pakaian, makanan, atau software, biarkan kosong. Jangan salah pilih karena bisa membatasi targeting kamu.",
+            },
+            {
+              field: "Optimasi Anggaran Kampanye (CBO)",
+              what: "Campaign Budget Optimization. Jika aktif, Meta akan secara otomatis mendistribusikan anggaran ke Ad Set yang paling efisien.",
+              recommendation: "Aktifkan CBO jika kamu menjalankan banyak Ad Set sekaligus dan ingin Meta yang memilih mana yang paling hemat biaya. Matikan CBO jika kamu ingin kontrol penuh atas anggaran per Ad Set.",
+            },
+            {
+              field: "Anggaran (Budget)",
+              what: "Total uang yang akan kamu habiskan. Bisa per hari (Daily Budget) atau total selama kampanye berjalan (Lifetime Budget).",
+              recommendation: "Untuk pemula, mulai dengan Rp 50.000 - Rp 100.000/hari agar data cukup untuk optimasi. Tingkatkan secara bertahap (20-30%/minggu) jika hasilnya bagus.",
+            },
+          ]}
+        />
+
         {/* Nama kampanye */}
         <section className="bg-white rounded-xl border border-[#dddfe2] p-5">
           <label className="block text-sm font-semibold text-[#1c2b33] mb-1.5">Nama kampanye</label>

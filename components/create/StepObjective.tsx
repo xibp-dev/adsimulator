@@ -4,6 +4,7 @@ import { CampaignFormData } from "./CreateCampaignFlow";
 import { CampaignObjective } from "@/types";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import GuidePanel from "./GuidePanel";
 
 interface ObjectiveConfig {
   value: CampaignObjective;
@@ -174,6 +175,27 @@ export default function StepObjective({ data, selected, onSelect, buyingType, on
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Guide Panel – Langkah 1 */}
+        <div className="px-5 pt-4">
+          <GuidePanel
+            title="📋 Panduan: Tujuan Kampanye"
+            summary="Langkah pertama dalam membuat iklan di Meta Ads adalah memilih TUJUAN KAMPANYE (Objective). Tujuan menentukan apa yang ingin kamu capai dengan iklan ini — apakah kamu ingin lebih dikenal orang, mendatangkan kunjungan ke website, mendapatkan leads, atau meningkatkan penjualan."
+            tips={[
+              {
+                field: "Jenis Pembelian (Buying Type)",
+                what: "Cara kamu membayar iklan. 'Lelang' (Auction) artinya kamu bersaing dengan pengiklan lain secara real-time untuk menampilkan iklan. 'Reservasi' artinya kamu memesan slot iklan di muka dengan harga tetap.",
+                recommendation: "Gunakan Lelang untuk fleksibilitas dan efisiensi biaya. Gunakan Reservasi hanya jika kamu punya event besar dan butuh jangkauan yang terjamin pada tanggal tertentu.",
+              },
+              {
+                field: "Tujuan Kampanye (Objective)",
+                what: "Pilihan tujuan utama iklan kamu. Meta akan mengoptimalkan penayangan iklan kepada orang-orang yang paling mungkin melakukan aksi sesuai tujuan yang dipilih.",
+                recommendation: "Pilih 'Traffic' jika ingin mengarahkan orang ke website atau landing page. Pilih 'Leads' untuk mengumpulkan data calon pelanggan. Pilih 'Sales/Conversions' jika kamu ingin mendorong pembelian langsung. Untuk brand baru, mulai dengan 'Awareness' terlebih dahulu.",
+              },
+            ]}
+            defaultOpen
+          />
         </div>
 
         {/* Buying type */}

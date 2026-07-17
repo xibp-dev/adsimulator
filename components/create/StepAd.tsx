@@ -6,6 +6,7 @@ import { MOCK_PAGES, MOCK_INSTAGRAM, CTA_OPTIONS, MOCK_INSTANT_FORMS } from "@/l
 import { CTA } from "@/types";
 import { ImagePlus, Loader2, Eye, Plus, Trash2, PlayCircle, Image as ImageIcon, Link2 } from "lucide-react";
 import AdPreviewPanel from "./AdPreviewPanel";
+import GuidePanel from "./GuidePanel";
 
 interface Props {
   data: CampaignFormData;
@@ -93,6 +94,49 @@ export default function StepAd({ data, onChange, onPublish, publishing }: Props)
         <p className="text-sm text-gray-500 mb-6">Buat tampilan iklan yang dilihat audiens Anda.</p>
 
       <div className="space-y-5">
+        {/* Guide Panel – Langkah 4: Pengaturan Iklan (Ad) */}
+        <GuidePanel
+          title="🖼️ Panduan: Pengaturan Iklan (Ad)"
+          summary="Ad adalah konten yang benar-benar dilihat oleh audiens. Di sinilah kreativitas bertemu strategi. Kualitas kreatif iklan (gambar/video + teks) adalah faktor terbesar yang menentukan performa iklanmu."
+          tips={[
+            {
+              field: "Nama Iklan",
+              what: "Label internal untuk membedakan varian iklan dalam satu ad set.",
+              recommendation: "Gunakan nama yang mendeskripsikan konten, misalnya: 'Video Testimoni - Wanita 25-35' atau 'Gambar Produk - Promo Lebaran'. Berguna saat A/B testing.",
+            },
+            {
+              field: "Identitas (Halaman Facebook & Instagram)",
+              what: "Akun yang menjadi 'pengirim' iklan. Nama dan foto profil halaman akan muncul di iklan.",
+              recommendation: "Gunakan halaman bisnis yang sudah diverifikasi dan punya foto profil profesional. Pastikan nama halaman konsisten dengan brand-mu. Hubungkan akun Instagram agar bisa tayang di platform tersebut.",
+            },
+            {
+              field: "Format Iklan",
+              what: "Jenis konten: Gambar tunggal, Video, Carousel (banyak gambar), atau Koleksi.",
+              recommendation: "Video pendek 15-30 detik dengan hook kuat di 3 detik pertama biasanya paling efektif. Carousel cocok untuk showcase banyak produk. Gambar tunggal paling mudah dibuat tapi perlu visual yang sangat eye-catching.",
+            },
+            {
+              field: "Teks Utama (Primary Text / Ad Copy)",
+              what: "Teks yang muncul di atas gambar/video iklan. Ini adalah pesan utama iklanmu.",
+              recommendation: "Gunakan formula: Hook (masalah/manfaat) + Penjelasan singkat + CTA. Panjang ideal 125 karakter untuk versi pendek, atau 2-3 paragraf untuk versi panjang. Sertakan emoji secukupnya untuk menarik perhatian.",
+            },
+            {
+              field: "Judul (Headline)",
+              what: "Teks tebal di bawah gambar/video. Biasanya 1-2 baris.",
+              recommendation: "Buat headline yang langsung menyebut manfaat atau penawaran, misal: 'Diskon 50% Hari Ini Saja!' atau 'Raih Penjualan 10x Lebih Cepat'. Hindari headline yang terlalu umum.",
+            },
+            {
+              field: "Tombol CTA (Call to Action)",
+              what: "Tombol aksi yang mengajak orang klik, seperti: Pelajari Selengkapnya, Beli Sekarang, Hubungi Kami, Daftar, dll.",
+              recommendation: "Sesuaikan CTA dengan tujuan: 'Beli Sekarang' untuk sales, 'Pelajari Selengkapnya' untuk awareness, 'Hubungi Kami' untuk WhatsApp. CTA yang spesifik meningkatkan klik.",
+            },
+            {
+              field: "URL Tujuan (Destination URL)",
+              what: "Link yang dikunjungi orang setelah klik iklan.",
+              recommendation: "Gunakan UTM parameter untuk tracking, misal: ?utm_source=facebook&utm_campaign=juli2025. Pastikan landing page mobile-friendly dan loading < 3 detik.",
+            },
+          ]}
+        />
+
         {/* Nama iklan */}
         <section className="bg-white rounded-xl border border-[#dddfe2] p-5">
           <label className="block text-sm font-semibold text-[#1c2b33] mb-1.5">Nama iklan</label>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { 
@@ -26,6 +26,7 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
+import GuidePanel from "@/components/create/GuidePanel";
 
 // Local SVG component for Instagram logo to bypass older package exports
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -537,6 +538,28 @@ export default function BusinessSettingsPage() {
         {/* INFO BISNIS VIEW */}
         {activeMenu === "info-bisnis" && (
           <div className="space-y-6 max-w-4xl">
+            <GuidePanel
+              title="🏢 Panduan: Portofolio Bisnis (Business Portfolio)"
+              summary="Portofolio Bisnis adalah wadah utama yang menaungi semua aset iklan kamu di Meta: Halaman Facebook, Akun Iklan, Pixel, Instagram, dan WhatsApp. Wajib dibuat sebelum bisa menjalankan iklan."
+              tips={[
+                {
+                  field: "Nama Portofolio",
+                  what: "Nama identitas bisnis kamu di Meta Business Suite. Ini yang akan terlihat di semua aset yang terhubung.",
+                  recommendation: "Gunakan nama bisnis resmi atau nama brand kamu. Contoh: 'Creative Studio Nusantara' atau 'Toko Online Budi'. Hindari nama personal yang tidak mewakili brand.",
+                },
+                {
+                  field: "Email Bisnis",
+                  what: "Email utama yang digunakan untuk notifikasi dan komunikasi bisnis dari Meta.",
+                  recommendation: "Gunakan email bisnis profesional (bukan gmail personal), misal: halo@namabisniskamu.com. Pastikan email aktif dan dapat menerima notifikasi penting dari Meta.",
+                },
+                {
+                  field: "Verifikasi Bisnis",
+                  what: "Proses konfirmasi identitas bisnis kamu ke Meta menggunakan dokumen resmi (SIUP, NPWP, dll).",
+                  recommendation: "Segera verifikasi bisnis setelah portofolio dibuat. Bisnis terverifikasi mendapatkan batas belanja lebih tinggi, akses fitur lebih lengkap, dan kepercayaan lebih dari platform Meta.",
+                },
+              ]}
+              defaultOpen
+            />
             {portfolios.length > 0 ? (
               <>
                 {/* Header info */}
@@ -682,6 +705,22 @@ export default function BusinessSettingsPage() {
         {/* ORANG (USERS) VIEW */}
         {activeMenu === "orang" && (
           <div className="space-y-6 max-w-4xl">
+            <GuidePanel
+              title="👥 Panduan: Orang & Akses (System Users)"
+              summary="Menu ini mengatur siapa saja yang bisa mengakses dan mengelola aset bisnis di portofolio kamu. Sangat penting untuk tim yang bekerja bersama."
+              tips={[
+                {
+                  field: "Peran Admin",
+                  what: "Memiliki akses penuh: bisa menambah/hapus orang, mengelola semua aset, dan mengubah pengaturan bisnis.",
+                  recommendation: "Hanya berikan peran Admin ke orang yang paling dipercaya (owner, direktur, atau manajer senior). Jangan terlalu banyak admin untuk menjaga keamanan akun.",
+                },
+                {
+                  field: "Peran Karyawan (Employee)",
+                  what: "Hanya bisa mengakses aset yang diberikan izin. Tidak bisa mengelola orang lain atau mengubah pengaturan utama.",
+                  recommendation: "Gunakan peran Karyawan untuk tim kreatif, media buyer, atau agensi. Berikan akses hanya ke aset yang mereka butuhkan (misalnya hanya ke satu akun iklan tertentu).",
+                },
+              ]}
+            />
             <div className="border-b border-[#dddfe2] pb-4 flex justify-between items-center">
               <div>
                 <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -790,6 +829,27 @@ export default function BusinessSettingsPage() {
         {/* HALAMAN (PAGES) VIEW */}
         {activeMenu === "halaman" && (
           <div className="space-y-6 max-w-4xl">
+            <GuidePanel
+              title="📱 Panduan: Halaman Facebook (Fanspage)"
+              summary="Halaman Facebook adalah identitas publik bisnis kamu di platform Meta. Halaman ini akan tampil sebagai 'pengirim' semua iklanmu dan menjadi aset utama untuk engagement organik."
+              tips={[
+                {
+                  field: "Nama Halaman",
+                  what: "Nama yang terlihat publik di semua platform Meta. Ini adalah brand identity kamu.",
+                  recommendation: "Gunakan nama brand yang konsisten. Foto profil dan cover harus profesional dan merepresentasikan bisnis. Halaman yang lengkap (info, foto, review) meningkatkan kepercayaan audiens terhadap iklan.",
+                },
+                {
+                  field: "Kategori Halaman",
+                  what: "Jenis bisnis atau industri yang menggambarkan halaman kamu (Restoran, E-commerce, Jasa Profesional, dll).",
+                  recommendation: "Pilih kategori yang paling spesifik dan sesuai. Kategori yang tepat membantu Meta menampilkan halamanmu di pencarian yang relevan. Bisa dipilih hingga 3 kategori.",
+                },
+                {
+                  field: "Hubungan ke Portofolio",
+                  what: "Menghubungkan halaman Facebook ke portofolio bisnis agar bisa digunakan sebagai identitas iklan.",
+                  recommendation: "Pastikan kamu adalah admin halaman Facebook sebelum menghubungkannya. Satu halaman bisa digunakan di banyak kampanye, tapi idealnya satu brand punya satu halaman utama.",
+                },
+              ]}
+            />
             <div className="border-b border-[#dddfe2] pb-4 flex justify-between items-center">
               <div>
                 <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -846,6 +906,27 @@ export default function BusinessSettingsPage() {
         {/* AKUN IKLAN VIEW */}
         {activeMenu === "akun-iklan" && (
           <div className="space-y-6 max-w-4xl">
+            <GuidePanel
+              title="💳 Panduan: Akun Iklan (Ad Account)"
+              summary="Akun Iklan adalah 'dompet' dan pusat pengeluaran iklanmu di Meta. Semua biaya kampanye akan dibebankan ke akun ini. Setiap portofolio bisa punya beberapa akun iklan (misalnya untuk divisi atau klien berbeda)."
+              tips={[
+                {
+                  field: "Saldo Akun Iklan",
+                  what: "Jumlah dana yang tersedia untuk membiayai tayangan iklan. Di simulator ini menggunakan saldo virtual.",
+                  recommendation: "Di akun nyata Meta, isi saldo via kartu kredit, transfer bank, atau payment gateway yang tersedia. Selalu pantau saldo agar iklan tidak berhenti di tengah kampanye.",
+                },
+                {
+                  field: "Mata Uang Akun",
+                  what: "Satuan mata uang yang digunakan untuk penagihan (Rupiah IDR, Dolar USD, dll).",
+                  recommendation: "Pilih Rupiah (IDR) jika target pasar kamu Indonesia. Ini memudahkan perencanaan anggaran dan pelaporan keuangan tanpa perlu konversi mata uang.",
+                },
+                {
+                  field: "Batas Pengeluaran",
+                  what: "Jumlah maksimum yang bisa dibelanjakan sebelum iklan otomatis berhenti.",
+                  recommendation: "Selalu set batas pengeluaran harian atau lifetime terutama saat testing. Ini melindungi kamu dari overspending jika ada bug atau pengaturan yang salah.",
+                },
+              ]}
+            />
             <div className="border-b border-[#dddfe2] pb-4 flex justify-between items-center">
               <div>
                 <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -1014,6 +1095,32 @@ export default function BusinessSettingsPage() {
         {/* PIXEL VIEW */}
         {activeMenu === "pixel" && (
           <div className="space-y-6 max-w-4xl">
+            <GuidePanel
+              title="🔮 Panduan: Meta Pixel & Dataset Tracker"
+              summary="Meta Pixel adalah kode JavaScript yang kamu pasang di website untuk 'memberitahu' Meta apa yang dilakukan pengunjung: melihat produk, tambah ke keranjang, checkout, atau beli. Data ini digunakan Meta untuk mengoptimalkan iklan dan membangun audiens yang tepat."
+              tips={[
+                {
+                  field: "Nama Pixel",
+                  what: "Label identifikasi pixel kamu. Satu website biasanya hanya butuh satu pixel.",
+                  recommendation: "Gunakan nama yang jelas, misal: 'Pixel Website Toko A' atau 'Pixel Landing Page Kursus'. Jika kamu punya beberapa website/brand, buat pixel terpisah untuk masing-masing.",
+                },
+                {
+                  field: "URL Website",
+                  what: "Domain website tempat kode pixel akan dipasang.",
+                  recommendation: "Pastikan URL sudah benar dan website aktif. Setelah pixel dibuat, pasang kode di semua halaman website (terutama halaman terima kasih/konfirmasi pembelian).",
+                },
+                {
+                  field: "Events (Kejadian)",
+                  what: "Tindakan spesifik yang dilacak pixel: PageView (kunjungan halaman), AddToCart, Purchase, Lead, CompleteRegistration, dll.",
+                  recommendation: "Minimal pasang event 'PageView' di semua halaman, dan 'Purchase' atau 'Lead' di halaman konversi. Data event dibutuhkan Meta untuk mengoptimalkan kampanye conversion/sales.",
+                },
+                {
+                  field: "Conversions API (CAPI)",
+                  what: "Pelengkap pixel untuk mengirim data konversi langsung dari server, bukan hanya dari browser. Lebih akurat karena tidak terpengaruh adblocker.",
+                  recommendation: "Implementasikan CAPI bersamaan dengan pixel browser untuk data yang lebih lengkap dan akurat. Ini penting terutama sejak iOS 14 membatasi tracking browser.",
+                },
+              ]}
+            />
             <div className="border-b border-[#dddfe2] pb-4 flex justify-between items-center">
               <div>
                 <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
