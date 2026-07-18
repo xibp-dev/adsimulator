@@ -2,13 +2,23 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { Bell, ChevronDown, LogOut, User, Search } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User, Search, Menu } from "lucide-react";
 
-export default function AdminTopBar({ userName }: { userName: string }) {
+export default function AdminTopBar({ userName, onToggleSidebar }: { userName: string; onToggleSidebar?: () => void }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center px-6 lg:px-8 gap-4 sticky top-0 z-30">
+    <header className="h-16 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center px-4 md:px-6 lg:px-8 gap-4 sticky top-0 z-30">
+      {/* Mobile sidebar toggle button */}
+      {onToggleSidebar && (
+        <button
+          onClick={onToggleSidebar}
+          className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors focus:outline-none"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
+
       {/* Search */}
       <div className="hidden md:flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 w-72">
         <Search className="w-4 h-4 text-gray-400" />
