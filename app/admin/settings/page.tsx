@@ -5,17 +5,19 @@ import BrandingForm from "./BrandingForm";
 import QrisForm from "./QrisForm";
 import CertificateForm from "./CertificateForm";
 import TraktirToggle from "./TraktirToggle";
-import { Search, Globe, Info, CheckCircle, AlertCircle, QrCode, Award, Palette, FileText } from "lucide-react";
+import SurveyToggle from "./SurveyToggle";
+import { Search, Globe, Info, CheckCircle, AlertCircle, QrCode, Award, Palette, FileText, ClipboardCheck, Zap } from "lucide-react";
 
 export const metadata = { title: "Pengaturan Platform" };
 
-type Tab = "seo" | "branding" | "qris" | "sertifikat";
+type Tab = "seo" | "branding" | "qris" | "sertifikat" | "fitur";
 
 const TABS: { id: Tab; label: string; icon: typeof Globe; desc: string }[] = [
   { id: "seo", label: "SEO", icon: Search, desc: "Judul, deskripsi, keywords, dan skor kesiapan SEO" },
   { id: "branding", label: "Branding & Integrasi", icon: Palette, desc: "Logo, favicon, dan Google Tag Manager" },
   { id: "qris", label: "QRIS & Pembayaran", icon: QrCode, desc: "QRIS untuk traktir dan pembayaran langganan" },
   { id: "sertifikat", label: "Sertifikat", icon: Award, desc: "Desain sertifikat kelulusan LMS" },
+  { id: "fitur", label: "Fitur", icon: Zap, desc: "Aktifkan atau nonaktifkan fitur-fitur platform" },
 ];
 
 export default async function AdminSettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -182,6 +184,29 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <SectionHeader icon={Award} title="Desain Sertifikat" desc="Logo, lembaga, penandatangan, dan warna sertifikat kelulusan" />
           <div className="p-6"><CertificateForm settings={settings} /></div>
+        </div>
+      )}
+
+      {/* ── TAB: Fitur ── */}
+      {tab === "fitur" && (
+        <div className="space-y-5 max-w-2xl">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <SectionHeader icon={Zap} title="Manajemen Fitur" desc="Aktifkan atau nonaktifkan fitur-fitur platform secara real-time" />
+            <div className="p-6 space-y-4">
+              <SurveyToggle initialEnabled={settings.surveyEnabled === true} />
+              <TraktirToggle initialEnabled={settings.traktirEnabled !== false} />
+            </div>
+          </div>
+
+          <div className="bg-[#e7f0ff]/50 border border-[#0866FF]/10 rounded-2xl p-4">
+            <div className="flex items-start gap-2">
+              <ClipboardCheck className="w-4 h-4 text-[#0866FF] mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-[#0866FF]/80 leading-relaxed">
+                <p className="font-bold mb-0.5">Tentang Survei Pengguna</p>
+                <p>Survei berisi 5 pertanyaan singkat: pernah beriklan, profesi, nomor WhatsApp, punya website, dan akun sosial media. Popup otomatis muncul saat user masuk dashboard dan belum pernah mengisi. Data tersimpan di tabel <code className="bg-[#0866FF]/10 px-1 rounded">SurveyResponse</code>.</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

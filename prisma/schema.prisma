@@ -9,18 +9,19 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  role         String    @default("USER")
-  status       String    @default("ACTIVE")
-  createdAt    DateTime  @default(now())
-  lastLoginAt  DateTime?
-  adAccount    AdAccount?
-  referredById String?
-  referredBy   User?     @relation("UserReferrals", fields: [referredById], references: [id])
-  referrals    User[]    @relation("UserReferrals")
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  passwordHash   String
+  role           String          @default("USER")
+  status         String          @default("ACTIVE")
+  createdAt      DateTime        @default(now())
+  lastLoginAt    DateTime?
+  adAccount      AdAccount?
+  referredById   String?
+  referredBy     User?           @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals      User[]          @relation("UserReferrals")
+  surveyResponse SurveyResponse?
 }
 
 model AdAccount {
@@ -161,6 +162,7 @@ model SiteSettings {
   certLogoUrl        String @default("")
   certAccent         String @default("#0866FF")
   traktirEnabled     Boolean @default(true)
+  surveyEnabled      Boolean @default(false)
   updatedAt   DateTime @updatedAt
 }
 
@@ -355,6 +357,18 @@ model AffiliateCommission {
 
   @@index([referrerId])
   @@index([referredUserId])
+}
+
+model SurveyResponse {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  hasAdvertised String   // "Pernah" | "Belum Pernah"
+  profession    String
+  whatsapp      String
+  hasWebsite    String   // "Punya" | "Belum Punya"
+  socialMedia   String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 

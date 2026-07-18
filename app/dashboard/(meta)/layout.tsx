@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getSiteSettings } from "@/lib/siteSettings";
 import { getAdAccount } from "@/lib/adAccount";
+import SurveyGate from "@/components/ui/SurveyGate";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -24,6 +25,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
       traktirEnabled={settings?.traktirEnabled !== false}
     >
       {children}
+      <SurveyGate surveyEnabled={settings?.surveyEnabled === true} />
     </DashboardLayout>
   );
 }
+

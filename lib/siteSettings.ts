@@ -23,6 +23,7 @@ export interface SiteSettings {
   certLogoUrl: string;
   certAccent: string;
   traktirEnabled: boolean;
+  surveyEnabled: boolean;
   updatedAt: string;
 }
 
@@ -47,6 +48,7 @@ const DEFAULTS: SiteSettings = {
   certLogoUrl: "",
   certAccent: "#0866FF",
   traktirEnabled: true,
+  surveyEnabled: false,
   updatedAt: new Date().toISOString(),
 };
 

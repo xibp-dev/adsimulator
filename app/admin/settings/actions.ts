@@ -50,3 +50,12 @@ export async function saveCertificateSettings(formData: FormData) {
   }
   return result;
 }
+
+export async function setSurveyEnabled(enabled: boolean) {
+  const result = await updateSiteSettings({ surveyEnabled: enabled });
+  if (result.success) {
+    updateTag(SITE_SETTINGS_TAG);
+    revalidatePath("/", "layout");
+  }
+  return result;
+}
