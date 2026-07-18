@@ -4,6 +4,45 @@ import { cache } from "react";
 
 export const SITE_SETTINGS_TAG = "site-settings";
 
+export interface SurveyQuestionOption { value: string; display: string; }
+export interface SurveyConfig {
+  q1Label: string;
+  q1Options: SurveyQuestionOption[];
+  q2Label: string;
+  q2Options: string[];
+  q3Label: string;
+  q3Placeholder: string;
+  q3Required: boolean;
+  q4Label: string;
+  q4Options: SurveyQuestionOption[];
+  q5Label: string;
+  q5Sublabel: string;
+  q5Placeholder: string;
+  q5Required: boolean;
+}
+
+export const DEFAULT_SURVEY_CONFIG: SurveyConfig = {
+  q1Label: "Apakah kamu sudah pernah beriklan sebelumnya?",
+  q1Options: [
+    { value: "Pernah", display: "✅ Ya, Pernah" },
+    { value: "Belum Pernah", display: "❌ Belum Pernah" },
+  ],
+  q2Label: "Profesi kamu saat ini?",
+  q2Options: ["Pebisnis / Pengusaha", "Freelancer / Kerja Mandiri", "Karyawan / Pegawai", "Mahasiswa / Pelajar", "Ibu Rumah Tangga", "Digital Marketer", "Content Creator", "Lainnya"],
+  q3Label: "Nomor WhatsApp kamu?",
+  q3Placeholder: "cth: 08123456789",
+  q3Required: true,
+  q4Label: "Apakah kamu punya website?",
+  q4Options: [
+    { value: "Punya", display: "🌐 Punya" },
+    { value: "Belum Punya", display: "❌ Belum" },
+  ],
+  q5Label: "Akun media sosial kamu?",
+  q5Sublabel: "Instagram, TikTok, Facebook, YouTube, dll.",
+  q5Placeholder: "cth: @namakamu atau https://instagram.com/...",
+  q5Required: false,
+};
+
 export interface SiteSettings {
   id: string;
   siteUrl: string;
@@ -24,6 +63,7 @@ export interface SiteSettings {
   certAccent: string;
   traktirEnabled: boolean;
   surveyEnabled: boolean;
+  surveyConfig: SurveyConfig | null;
   updatedAt: string;
 }
 
@@ -49,6 +89,7 @@ const DEFAULTS: SiteSettings = {
   certAccent: "#0866FF",
   traktirEnabled: true,
   surveyEnabled: false,
+  surveyConfig: null,
   updatedAt: new Date().toISOString(),
 };
 

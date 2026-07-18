@@ -2,26 +2,30 @@
 
 import { useState, useEffect } from "react";
 import SurveyModal from "@/components/ui/SurveyModal";
+import type { SurveyConfig } from "@/lib/siteSettings";
 
 export default function SurveyGate({ surveyEnabled }: { surveyEnabled: boolean }) {
   const [showSurvey, setShowSurvey] = useState(false);
+  const [surveyConfig, setSurveyConfig] = useState<SurveyConfig | null>(null);
 
   useEffect(() => {
     if (!surveyEnabled) return;
 
-    // Cek apakah user sudah mengisi survei
-    fetch("/api/survey")
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.hasCompleted) {
-          // Delay sedikit agar tidak langsung muncul saat halaman baru load
+    // Paralel: cek completion + ambil config
+    Promise.all([
+      fetch("/api/survey").then(r => r.json()),
+      fetch("/api/survey/config").then(r => r.json()),
+    ])
+      .then(([status, config]) => {
+        setSurveyConfig(config);
+        if (!status.hasCompleted) {
           setTimeout(() => setShowSurvey(true), 1200);
         }
       })
       .catch(() => {/* silent fail */});
   }, [surveyEnabled]);
 
-  if (!showSurvey) return null;
+  if (!showSurvey || !surveyConfig) return null;
 
-  return <SurveyModal onClose={() => setShowSurvey(false)} />;
+  return <SurveyModal config={surveyConfig} onClose={() => setShowSurvey(false)} />;
 }

@@ -59,3 +59,12 @@ export async function setSurveyEnabled(enabled: boolean) {
   }
   return result;
 }
+
+export async function saveSurveyConfig(config: import("@/lib/siteSettings").SurveyConfig) {
+  const result = await updateSiteSettings({ surveyConfig: config });
+  if (result.success) {
+    updateTag(SITE_SETTINGS_TAG);
+    revalidatePath("/", "layout");
+  }
+  return result;
+}

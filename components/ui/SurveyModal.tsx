@@ -5,32 +5,26 @@ import {
   X, ChevronRight, Loader2, CheckCircle2, Megaphone, Briefcase,
   Phone, Globe, Share2, ClipboardCheck
 } from "lucide-react";
-import {
-  Q1_LABEL, Q1_OPTIONS,
-  Q2_LABEL, Q2_OPTIONS,
-  Q3_LABEL, Q3_PLACEHOLDER, Q3_REQUIRED,
-  Q4_LABEL, Q4_OPTIONS,
-  Q5_LABEL, Q5_SUBLABEL, Q5_PLACEHOLDER, Q5_REQUIRED,
-  type HasAdvertised, type HasWebsite,
-} from "@/lib/survey.config";
+import { type SurveyConfig } from "@/lib/siteSettings";
 
 interface SurveyModalProps {
   onClose: () => void;
+  config: SurveyConfig;
 }
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
-export default function SurveyModal({ onClose }: SurveyModalProps) {
+export default function SurveyModal({ onClose, config }: SurveyModalProps) {
   const [step, setStep] = useState<Step>(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    hasAdvertised: "" as "" | HasAdvertised,
+    hasAdvertised: "",
     profession: "",
     whatsapp: "",
-    hasWebsite: "" as "" | HasWebsite,
+    hasWebsite: "",
     socialMedia: "",
   });
 
@@ -154,11 +148,11 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 1</p>
-                  <h3 className="text-sm font-bold text-[#1c2b33]">{Q1_LABEL}</h3>
+                  <h3 className="text-sm font-bold text-[#1c2b33]">{config.q1Label}</h3>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {Q1_OPTIONS.map((opt) => (
+                {config.q1Options.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => { setForm(f => ({ ...f, hasAdvertised: opt.value })); setStep(2); }}
@@ -184,11 +178,11 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 2</p>
-                  <h3 className="text-sm font-bold text-[#1c2b33]">{Q2_LABEL}</h3>
+                  <h3 className="text-sm font-bold text-[#1c2b33]">{config.q2Label}</h3>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto">
-                {Q2_OPTIONS.map((opt) => (
+                {config.q2Options.map((opt) => (
                   <button
                     key={opt}
                     onClick={() => { setForm(f => ({ ...f, profession: opt })); setStep(3); }}
@@ -215,13 +209,13 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                     <Phone className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 3{!Q3_REQUIRED && " (opsional)"}</p>
-                    <h3 className="text-sm font-bold text-[#1c2b33]">{Q3_LABEL}</h3>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 3{!config.q3Required && " (opsional)"}</p>
+                    <h3 className="text-sm font-bold text-[#1c2b33]">{config.q3Label}</h3>
                   </div>
                 </div>
                 <input
                   type="tel"
-                  placeholder={Q3_PLACEHOLDER}
+                  placeholder={config.q3Placeholder}
                   value={form.whatsapp}
                   onChange={(e) => setForm(f => ({ ...f, whatsapp: e.target.value }))}
                   className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0866FF] transition-all"
@@ -236,11 +230,11 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                   </div>
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 4</p>
-                    <h3 className="text-sm font-bold text-[#1c2b33]">{Q4_LABEL}</h3>
+                    <h3 className="text-sm font-bold text-[#1c2b33]">{config.q4Label}</h3>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {Q4_OPTIONS.map((opt) => (
+                  {config.q4Options.map((opt) => (
                     <button
                       key={opt.value}
                       onClick={() => setForm(f => ({ ...f, hasWebsite: opt.value }))}
@@ -258,7 +252,7 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
 
               <button
                 onClick={() => {
-                  if (Q3_REQUIRED && !form.whatsapp.trim()) { setError("Nomor WhatsApp wajib diisi."); return; }
+                  if (config.q3Required && !form.whatsapp.trim()) { setError("Nomor WhatsApp wajib diisi."); return; }
                   if (!form.hasWebsite) { setError("Pilih apakah kamu punya website."); return; }
                   setError("");
                   setStep(4);
@@ -280,18 +274,18 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                     <Share2 className="w-4 h-4 text-pink-500" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 5{!Q5_REQUIRED && " (opsional)"}</p>
-                    <h3 className="text-sm font-bold text-[#1c2b33]">{Q5_LABEL}</h3>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 5{!config.q5Required && " (opsional)"}</p>
+                    <h3 className="text-sm font-bold text-[#1c2b33]">{config.q5Label}</h3>
                   </div>
                 </div>
                 <input
                   type="text"
-                  placeholder={Q5_PLACEHOLDER}
+                  placeholder={config.q5Placeholder}
                   value={form.socialMedia}
                   onChange={(e) => setForm(f => ({ ...f, socialMedia: e.target.value }))}
                   className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0866FF] transition-all"
                 />
-                <p className="text-[10px] text-gray-400">{Q5_SUBLABEL}</p>
+                <p className="text-[10px] text-gray-400">{config.q5Sublabel}</p>
               </div>
 
               {/* Ringkasan */}

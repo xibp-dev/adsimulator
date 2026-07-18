@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { getSiteSettings } from "@/lib/siteSettings";
+import { getSiteSettings, DEFAULT_SURVEY_CONFIG } from "@/lib/siteSettings";
 import SeoForm from "./SeoForm";
 import BrandingForm from "./BrandingForm";
 import QrisForm from "./QrisForm";
 import CertificateForm from "./CertificateForm";
 import TraktirToggle from "./TraktirToggle";
 import SurveyToggle from "./SurveyToggle";
-import { Search, Globe, Info, CheckCircle, AlertCircle, QrCode, Award, Palette, FileText, ClipboardCheck, Zap } from "lucide-react";
+import SurveyConfigForm from "./SurveyConfigForm";
+import { Search, Globe, Info, CheckCircle, AlertCircle, QrCode, Award, Palette, FileText, ClipboardCheck, Zap, Settings2 } from "lucide-react";
 
 export const metadata = { title: "Pengaturan Platform" };
 
@@ -189,7 +190,8 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
 
       {/* ── TAB: Fitur ── */}
       {tab === "fitur" && (
-        <div className="space-y-5 max-w-2xl">
+        <div className="space-y-5">
+          {/* Toggle on/off */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <SectionHeader icon={Zap} title="Manajemen Fitur" desc="Aktifkan atau nonaktifkan fitur-fitur platform secara real-time" />
             <div className="p-6 space-y-4">
@@ -198,13 +200,17 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
             </div>
           </div>
 
-          <div className="bg-[#e7f0ff]/50 border border-[#0866FF]/10 rounded-2xl p-4">
-            <div className="flex items-start gap-2">
-              <ClipboardCheck className="w-4 h-4 text-[#0866FF] mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-[#0866FF]/80 leading-relaxed">
-                <p className="font-bold mb-0.5">Tentang Survei Pengguna</p>
-                <p>Survei berisi 5 pertanyaan singkat: pernah beriklan, profesi, nomor WhatsApp, punya website, dan akun sosial media. Popup otomatis muncul saat user masuk dashboard dan belum pernah mengisi. Data tersimpan di tabel <code className="bg-[#0866FF]/10 px-1 rounded">SurveyResponse</code>.</p>
-              </div>
+          {/* Survey question editor */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <SectionHeader
+              icon={Settings2}
+              title="Editor Pertanyaan Survei"
+              desc="Edit teks, pilihan jawaban, dan pengaturan setiap pertanyaan survei"
+            />
+            <div className="p-6">
+              <SurveyConfigForm
+                initialConfig={settings.surveyConfig ?? DEFAULT_SURVEY_CONFIG}
+              />
             </div>
           </div>
         </div>
