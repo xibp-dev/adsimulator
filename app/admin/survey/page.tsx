@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import SurveyResponsesClient from "./SurveyResponsesClient";
 
 export const metadata = { title: "Data Survei Pengguna" };
@@ -10,7 +10,7 @@ export default async function AdminSurveyPage() {
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
   // Ambil semua survey responses
-  const { data: responses } = await supabase
+  const { data: responses } = await supabaseAdmin
     .from("SurveyResponse")
     .select("*")
     .order("createdAt", { ascending: false });
@@ -18,7 +18,7 @@ export default async function AdminSurveyPage() {
   // Ambil data user (nama & email) untuk semua userId
   const userIds = (responses || []).map((r: any) => r.userId);
   const { data: users } = userIds.length
-    ? await supabase.from("User").select("id, name, email").in("id", userIds)
+    ? await supabaseAdmin.from("User").select("id, name, email").in("id", userIds)
     : { data: [] };
 
   const userMap: Record<string, { name: string; email: string }> = {};
