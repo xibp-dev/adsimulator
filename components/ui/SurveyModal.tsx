@@ -1,27 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   X, ChevronRight, Loader2, CheckCircle2, Megaphone, Briefcase,
   Phone, Globe, Share2, ClipboardCheck
 } from "lucide-react";
+import {
+  Q1_LABEL, Q1_OPTIONS,
+  Q2_LABEL, Q2_OPTIONS,
+  Q3_LABEL, Q3_PLACEHOLDER, Q3_REQUIRED,
+  Q4_LABEL, Q4_OPTIONS,
+  Q5_LABEL, Q5_SUBLABEL, Q5_PLACEHOLDER, Q5_REQUIRED,
+  type HasAdvertised, type HasWebsite,
+} from "@/lib/survey.config";
 
 interface SurveyModalProps {
   onClose: () => void;
 }
 
 type Step = 0 | 1 | 2 | 3 | 4;
-
-const PROFESSIONS = [
-  "Pebisnis / Pengusaha",
-  "Freelancer / Kerja Mandiri",
-  "Karyawan / Pegawai",
-  "Mahasiswa / Pelajar",
-  "Ibu Rumah Tangga",
-  "Digital Marketer",
-  "Content Creator",
-  "Lainnya",
-];
 
 export default function SurveyModal({ onClose }: SurveyModalProps) {
   const [step, setStep] = useState<Step>(0);
@@ -30,10 +27,10 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    hasAdvertised: "" as "" | "Pernah" | "Belum Pernah",
+    hasAdvertised: "" as "" | HasAdvertised,
     profession: "",
     whatsapp: "",
-    hasWebsite: "" as "" | "Punya" | "Belum Punya",
+    hasWebsite: "" as "" | HasWebsite,
     socialMedia: "",
   });
 
@@ -157,21 +154,21 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 1</p>
-                  <h3 className="text-sm font-bold text-[#1c2b33]">Apakah kamu sudah pernah beriklan sebelumnya?</h3>
+                  <h3 className="text-sm font-bold text-[#1c2b33]">{Q1_LABEL}</h3>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {(["Pernah", "Belum Pernah"] as const).map((opt) => (
+                {Q1_OPTIONS.map((opt) => (
                   <button
-                    key={opt}
-                    onClick={() => { setForm(f => ({ ...f, hasAdvertised: opt })); setStep(2); }}
+                    key={opt.value}
+                    onClick={() => { setForm(f => ({ ...f, hasAdvertised: opt.value })); setStep(2); }}
                     className={`py-4 rounded-2xl border-2 text-sm font-bold transition-all ${
-                      form.hasAdvertised === opt
+                      form.hasAdvertised === opt.value
                         ? "border-[#0866FF] bg-[#e7f0ff] text-[#0866FF]"
                         : "border-gray-100 bg-gray-50 text-gray-600 hover:border-[#0866FF]/30 hover:bg-blue-50/40"
                     }`}
                   >
-                    {opt === "Pernah" ? "✅ Ya, Pernah" : "❌ Belum Pernah"}
+                    {opt.display}
                   </button>
                 ))}
               </div>
@@ -187,11 +184,11 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 2</p>
-                  <h3 className="text-sm font-bold text-[#1c2b33]">Profesi kamu saat ini?</h3>
+                  <h3 className="text-sm font-bold text-[#1c2b33]">{Q2_LABEL}</h3>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto">
-                {PROFESSIONS.map((opt) => (
+                {Q2_OPTIONS.map((opt) => (
                   <button
                     key={opt}
                     onClick={() => { setForm(f => ({ ...f, profession: opt })); setStep(3); }}
@@ -218,13 +215,13 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                     <Phone className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 3</p>
-                    <h3 className="text-sm font-bold text-[#1c2b33]">Nomor WhatsApp kamu?</h3>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 3{!Q3_REQUIRED && " (opsional)"}</p>
+                    <h3 className="text-sm font-bold text-[#1c2b33]">{Q3_LABEL}</h3>
                   </div>
                 </div>
                 <input
                   type="tel"
-                  placeholder="cth: 08123456789"
+                  placeholder={Q3_PLACEHOLDER}
                   value={form.whatsapp}
                   onChange={(e) => setForm(f => ({ ...f, whatsapp: e.target.value }))}
                   className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0866FF] transition-all"
@@ -239,21 +236,21 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                   </div>
                   <div>
                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 4</p>
-                    <h3 className="text-sm font-bold text-[#1c2b33]">Apakah kamu punya website?</h3>
+                    <h3 className="text-sm font-bold text-[#1c2b33]">{Q4_LABEL}</h3>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {(["Punya", "Belum Punya"] as const).map((opt) => (
+                  {Q4_OPTIONS.map((opt) => (
                     <button
-                      key={opt}
-                      onClick={() => setForm(f => ({ ...f, hasWebsite: opt }))}
+                      key={opt.value}
+                      onClick={() => setForm(f => ({ ...f, hasWebsite: opt.value }))}
                       className={`py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                        form.hasWebsite === opt
+                        form.hasWebsite === opt.value
                           ? "border-[#0866FF] bg-[#e7f0ff] text-[#0866FF]"
                           : "border-gray-100 bg-gray-50 text-gray-600 hover:border-[#0866FF]/30"
                       }`}
                     >
-                      {opt === "Punya" ? "🌐 Punya" : "❌ Belum"}
+                      {opt.display}
                     </button>
                   ))}
                 </div>
@@ -261,7 +258,7 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
 
               <button
                 onClick={() => {
-                  if (!form.whatsapp.trim()) { setError("Nomor WhatsApp wajib diisi."); return; }
+                  if (Q3_REQUIRED && !form.whatsapp.trim()) { setError("Nomor WhatsApp wajib diisi."); return; }
                   if (!form.hasWebsite) { setError("Pilih apakah kamu punya website."); return; }
                   setError("");
                   setStep(4);
@@ -283,18 +280,18 @@ export default function SurveyModal({ onClose }: SurveyModalProps) {
                     <Share2 className="w-4 h-4 text-pink-500" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 5</p>
-                    <h3 className="text-sm font-bold text-[#1c2b33]">Akun media sosial kamu? (opsional)</h3>
+                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Pertanyaan 5{!Q5_REQUIRED && " (opsional)"}</p>
+                    <h3 className="text-sm font-bold text-[#1c2b33]">{Q5_LABEL}</h3>
                   </div>
                 </div>
                 <input
                   type="text"
-                  placeholder="cth: @namakamu atau https://instagram.com/..."
+                  placeholder={Q5_PLACEHOLDER}
                   value={form.socialMedia}
                   onChange={(e) => setForm(f => ({ ...f, socialMedia: e.target.value }))}
                   className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0866FF] transition-all"
                 />
-                <p className="text-[10px] text-gray-400">Instagram, TikTok, Facebook, YouTube, dll.</p>
+                <p className="text-[10px] text-gray-400">{Q5_SUBLABEL}</p>
               </div>
 
               {/* Ringkasan */}
