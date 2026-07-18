@@ -1,6 +1,6 @@
 "use server";
 
-import { updateSiteSettings, SITE_SETTINGS_TAG } from "@/lib/siteSettings";
+import { updateSiteSettings, SITE_SETTINGS_TAG, type SurveyConfig } from "@/lib/siteSettings";
 import { revalidatePath, updateTag } from "next/cache";
 
 export async function saveSeoSettings(formData: FormData) {
@@ -60,9 +60,11 @@ export async function setSurveyEnabled(enabled: boolean) {
   return result;
 }
 
-export async function saveSurveyConfig(config: import("@/lib/siteSettings").SurveyConfig) {
-  const result = await updateSiteSettings({ surveyConfig: config });
-  if (result.success) {
+export async function saveSurveyConfig(config: SurveyConfig) {
+  const result = await updateSiteSettings({ surveyConfig: config as any });
+  if (!result.success) {
+    console.error("[saveSurveyConfig] error:", result.error);
+  } else {
     updateTag(SITE_SETTINGS_TAG);
     revalidatePath("/", "layout");
   }
