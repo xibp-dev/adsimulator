@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Cek apakah sudah pernah mengisi
-  const { data: existing, error: checkError } = await supabase
+  const { data: existing, error: checkError } = await supabaseAdmin
     .from("SurveyResponse")
     .select("id")
     .eq("userId", session.user.id)
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Survei sudah pernah diisi." }, { status: 409 });
   }
 
-  const { error } = await supabase.from("SurveyResponse").insert({
+  const { error } = await supabaseAdmin.from("SurveyResponse").insert({
     id: randomUUID(),
     userId: session.user.id,
     hasAdvertised: parsed.data.hasAdvertised,
@@ -63,7 +63,7 @@ export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data } = await supabase
+  const { data } = await supabaseAdmin
     .from("SurveyResponse")
     .select("id")
     .eq("userId", session.user.id)
