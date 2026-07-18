@@ -32,6 +32,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ web
     return NextResponse.json({ error: "Webinar tidak ditemukan" }, { status: 404 });
   }
 
+  // Cek apakah batas waktu ujian (deadline) sudah terlewati
+  if (webinar.examDeadline && new Date() > new Date(webinar.examDeadline)) {
+    return NextResponse.json({ error: "Ujian telah ditutup karena melewati batas waktu." }, { status: 400 });
+  }
+
   // Cek apakah user sudah pernah mengambil ujian ini
   const { data: existingAttempt } = await supabase
     .from("WebinarAttempt")

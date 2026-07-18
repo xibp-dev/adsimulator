@@ -18,6 +18,7 @@ const webinarSchema = z.object({
   meetingLink: z.string().default(""),
   examPasscode: z.string().default(""),
   published: z.boolean().default(true),
+  examDeadline: z.string().nullable().optional(),
 });
 
 // GET: Ambil semua webinar + jumlah pertanyaan + jumlah pendaftar/peserta
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
     meetingLink: parsed.data.meetingLink,
     examPasscode: parsed.data.examPasscode,
     published: parsed.data.published,
+    examDeadline: parsed.data.examDeadline ? new Date(parsed.data.examDeadline).toISOString() : null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

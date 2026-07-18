@@ -17,6 +17,7 @@ const updateSchema = z.object({
   meetingLink: z.string().optional(),
   examPasscode: z.string().optional(),
   published: z.boolean().optional(),
+  examDeadline: z.string().nullable().optional(),
 });
 
 // PATCH: Edit webinar
@@ -33,6 +34,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const payload: any = { ...parsed.data };
   if (payload.schedule) {
     payload.schedule = new Date(payload.schedule).toISOString();
+  }
+  if (payload.examDeadline !== undefined) {
+    payload.examDeadline = payload.examDeadline ? new Date(payload.examDeadline).toISOString() : null;
   }
   payload.updatedAt = new Date().toISOString();
 

@@ -36,6 +36,7 @@ const emptyWebinar = (): Partial<Webinar> => ({
   meetingLink: "",
   examPasscode: "",
   published: true,
+  examDeadline: null,
 });
 
 const inputCls = "w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0866FF] transition-all";
@@ -152,6 +153,7 @@ export default function WebinarManagement({
           meetingLink: f.meetingLink ?? "",
           examPasscode: f.examPasscode ?? "",
           published: f.published !== false,
+          examDeadline: f.examDeadline || null,
         }),
       });
 
@@ -515,7 +517,7 @@ export default function WebinarManagement({
                         </p>
                       )}
                     </div>
-                    <div className="p-4 rounded-xl bg-gray-50 space-y-1">
+                     <div className="p-4 rounded-xl bg-gray-50 space-y-1">
                       <span className="text-xs text-gray-400 font-medium">Kode Akses Ujian (Passcode)</span>
                       {selectedWebinar.examPasscode ? (
                         <p className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
@@ -524,6 +526,25 @@ export default function WebinarManagement({
                       ) : (
                         <p className="text-sm text-gray-400 flex items-center gap-1.5">
                           Tanpa kode (Terbuka bebas)
+                        </p>
+                      )}
+                    </div>
+                    <div className="p-4 rounded-xl bg-gray-50 space-y-1">
+                      <span className="text-xs text-gray-400 font-medium">Batas Waktu Ujian (Deadline)</span>
+                      {selectedWebinar.examDeadline ? (
+                        <p className="text-sm font-bold text-red-650 flex items-center gap-1.5 text-red-600">
+                          <Calendar className="w-4 h-4 text-red-500" />
+                          {new Date(selectedWebinar.examDeadline).toLocaleString("id-ID", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })} WIB
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-400 flex items-center gap-1.5">
+                          Tanpa batas waktu (Selalu terbuka)
                         </p>
                       )}
                     </div>
@@ -851,6 +872,17 @@ export default function WebinarManagement({
                   placeholder="mis. WEB100 (kosongkan jika tanpa kode)"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">Ujian sertifikat tidak bisa diakses user sebelum memasukkan kode ini.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Batas Waktu Ujian (Deadline) — Opsional</label>
+                <input
+                  type="datetime-local"
+                  value={toInputDateTime(webinarModal.form.examDeadline || undefined)}
+                  onChange={(e) => setWebinarModal((m) => ({ ...m, form: { ...m.form, examDeadline: e.target.value || null } }))}
+                  className={inputCls}
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Setelah melewati tanggal/waktu ini, peserta tidak dapat mengakses/mengerjakan ujian lagi.</p>
               </div>
 
               <div>

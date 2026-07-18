@@ -295,6 +295,7 @@ model Webinar {
   meetingLink String            @default("")
   examPasscode String           @default("")
   published   Boolean           @default(true)
+  examDeadline DateTime?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   questions   WebinarQuestion[]

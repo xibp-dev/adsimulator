@@ -180,6 +180,7 @@ export interface Webinar {
   meetingLink: string;
   examPasscode: string;
   published: boolean;
+  examDeadline?: string | null;
   createdAt: string;
   updatedAt: string;
   lessonCount?: number; // for UI display matching course card structures

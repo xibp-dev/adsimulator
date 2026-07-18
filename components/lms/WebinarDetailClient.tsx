@@ -37,6 +37,8 @@ export default function WebinarDetailClient({
   const [passcodeError, setPasscodeError] = useState("");
 
   const hasPasscode = !!webinar.examPasscode?.trim();
+  const isDeadlinePassed = !!(webinar.examDeadline && new Date() > new Date(webinar.examDeadline) && attempts.length === 0);
+
   const isExamLockedByPasscode = hasPasscode && !passcodeVerified && !attempts.some((a) => a.passed);
 
   // States for wizard & timer
@@ -386,6 +388,26 @@ export default function WebinarDetailClient({
                   {registering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
                   Daftar Sekarang
                 </button>
+              </div>
+            ) : isDeadlinePassed ? (
+              /* 1.5. Deadline Passed */
+              <div className="text-center py-8 bg-red-50/50 border border-dashed border-red-200 rounded-2xl p-5 space-y-3">
+                <Clock className="w-10 h-10 text-red-500 mx-auto" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-red-950">Ujian Telah Ditutup</p>
+                  <p className="text-xs text-red-800 px-2 leading-relaxed">
+                    Batas waktu pengerjaan ujian untuk webinar ini telah berakhir pada{" "}
+                    <b>
+                      {new Date(webinar.examDeadline!).toLocaleString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      })} WIB
+                    </b>.
+                  </p>
+                </div>
               </div>
             ) : isExamLockedByPasscode ? (
               /* 2. Lock Passcode */
