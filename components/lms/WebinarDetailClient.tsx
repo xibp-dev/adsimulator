@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Video, User, Calendar, Award, ExternalLink, HelpCircle, Check, Loader2, AlertCircle,
-  PlayCircle, RotateCcw, UserPlus, UserCheck, Lock, ShieldCheck, Play, Info, Eye, Clock
+  PlayCircle, RotateCcw, UserPlus, UserCheck, Lock, ShieldCheck, Play, Info, Eye, Clock,
+  XCircle, CheckCircle2
 } from "lucide-react";
 import type { Webinar, WebinarQuestion, WebinarAttempt } from "@/types";
 
@@ -45,6 +46,14 @@ export default function WebinarDetailClient({
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Track whether this device/browser supports fullscreen
+  const [supportsFullscreen, setSupportsFullscreen] = useState(true);
+  useEffect(() => {
+    const elem = document.documentElement;
+    const supported = !!(elem.requestFullscreen || (elem as any).webkitRequestFullscreen || (elem as any).msRequestFullscreen);
+    setSupportsFullscreen(supported);
+  }, []);
 
   // Aksen fullscreen
   const examContainerRef = useRef<HTMLDivElement>(null);
@@ -89,26 +98,34 @@ export default function WebinarDetailClient({
     }
   }
 
-  // ── Memulai Ujian (Request Fullscreen) ──
+  // ── Memulai Ujian (Request Fullscreen, fallback jika tidak support) ──
   const startExam = async () => {
     setSelectedAnswers({});
     setCurrentQuestionIndex(0);
     setError("");
 
     if (examContainerRef.current) {
+      const elem = examContainerRef.current;
       try {
-        const elem = examContainerRef.current;
         if (elem.requestFullscreen) {
           await elem.requestFullscreen();
         } else if ((elem as any).webkitRequestFullscreen) {
           await (elem as any).webkitRequestFullscreen();
         } else if ((elem as any).msRequestFullscreen) {
           await (elem as any).msRequestFullscreen();
+        } else {
+          // Device tidak support fullscreen (misal HP) — langsung mulai ujian
+          setIsFullscreenActive(false);
+          setExamState("TAKING");
+          return;
         }
+        // Kalau requestFullscreen berhasil, setExamState dipanggil di listener fullscreenchange
         setExamState("TAKING");
       } catch (err) {
-        console.error("Gagal mengaktifkan fullscreen:", err);
-        setError("Gagal masuk mode Fullscreen. Harap izinkan akses layar penuh di browser Anda.");
+        // Fullscreen ditolak/tidak support → tetap mulai ujian tanpa fullscreen
+        console.warn("Fullscreen tidak tersedia, ujian berjalan tanpa fullscreen:", err);
+        setIsFullscreenActive(false);
+        setExamState("TAKING");
       }
     }
   };
@@ -170,14 +187,17 @@ export default function WebinarDetailClient({
   useEffect(() => {
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!document.fullscreenElement;
-      setIsFullscreenActive(isCurrentlyFullscreen);
 
-      if (!isCurrentlyFullscreen && examState === "TAKING") {
+      // Hanya batalkan ujian jika sebelumnya memang dalam fullscreen lalu keluar
+      // (tidak berlaku jika ujian berjalan tanpa fullscreen di HP)
+      if (!isCurrentlyFullscreen && isFullscreenActive && examState === "TAKING") {
         setExamState("RULES");
         setError("Ujian dibatalkan karena Anda keluar dari mode Fullscreen. Tetaplah berada di mode Fullscreen saat ujian.");
         setSelectedAnswers({});
         setCurrentQuestionIndex(0);
       }
+
+      setIsFullscreenActive(isCurrentlyFullscreen);
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -191,11 +211,14 @@ export default function WebinarDetailClient({
       document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
       document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
     };
-  }, [examState]);
+  }, [examState, isFullscreenActive]);
 
-  // ── Efek: Timer 20 Detik Per Soal ──
+  // ── Efek: Timer 20 Detik Per Soal (berhenti jika sudah ada jawaban) ──
   useEffect(() => {
     if (examState !== "TAKING") return;
+
+    // Jika soal ini sudah dijawab, timer berhenti
+    if (currentQuestion && selectedAnswers[currentQuestion.id] !== undefined) return;
 
     setTimeLeft(20);
     const timer = setInterval(() => {
@@ -210,7 +233,7 @@ export default function WebinarDetailClient({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [examState, currentQuestionIndex]);
+  }, [examState, currentQuestionIndex, selectedAnswers]);
 
   const handleRetryExam = () => {
     setSelectedAnswers({});
@@ -331,12 +354,14 @@ export default function WebinarDetailClient({
             ref={examContainerRef}
             className={`${
               isFullscreenActive
-                ? "fixed inset-0 z-[9999] flex flex-col justify-center items-center bg-[#090d16] text-white p-6 md:p-12 overflow-y-auto"
-                : "bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5 h-fit"
+                ? "fixed inset-0 z-[9999] flex flex-col justify-center items-center bg-[#090d16] text-white p-4 md:p-12 overflow-y-auto"
+                : examState === "TAKING"
+                  ? "fixed inset-0 z-[9999] flex flex-col justify-center items-center bg-[#090d16] text-white p-4 md:p-12 overflow-y-auto"
+                  : "bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5 h-fit"
             }`}
           >
             {/* Header info */}
-            {!isFullscreenActive && (
+            {!isFullscreenActive && examState !== "TAKING" && (
               <div>
                 <h2 className="text-lg font-bold text-[#1c2b33] flex items-center gap-1.5">
                   <Award className="w-5 h-5 text-amber-500" /> Ujian Sertifikasi
@@ -442,7 +467,9 @@ export default function WebinarDetailClient({
                     <Info className="w-4 h-4" /> Aturan Ujian Webinar
                   </p>
                   <ul className="space-y-2 list-decimal list-inside leading-relaxed text-slate-700">
-                    <li>🖥️ <b>Ujian Wajib Fullscreen:</b> Keluar dari fullscreen di tengah ujian akan membatalkan pengerjaan secara otomatis.</li>
+                    {supportsFullscreen && (
+                      <li>🖥️ <b>Ujian Wajib Fullscreen (Desktop):</b> Keluar dari fullscreen di tengah ujian akan membatalkan pengerjaan secara otomatis.</li>
+                    )}
                     <li>⏱️ <b>20 Detik Per Soal:</b> Setiap pertanyaan memiliki batas waktu 20 detik. Jika habis, otomatis lanjut ke soal berikutnya.</li>
                     <li>🏆 <b>Skor Kelulusan ≥ 80%:</b> Selesaikan 10 soal dengan minimal 8 jawaban benar untuk berhak mengklaim sertifikat.</li>
                   </ul>
@@ -459,7 +486,8 @@ export default function WebinarDetailClient({
                   onClick={startExam}
                   className="w-full inline-flex items-center justify-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-xs font-bold px-4 py-3 rounded-xl transition-all shadow-md"
                 >
-                  <Play className="w-4 h-4" /> Mulai Ujian (Masuk Fullscreen)
+                  <Play className="w-4 h-4" />
+                  {supportsFullscreen ? "Mulai Ujian (Masuk Fullscreen)" : "Mulai Ujian"}
                 </button>
               </div>
             ) : (
@@ -495,30 +523,85 @@ export default function WebinarDetailClient({
 
                   <div className="space-y-2.5">
                     {optionsList.map((opt, optIdx) => {
-                      const active = selectedAnswers[currentQuestion.id] === optIdx;
+                      const hasAnswered = selectedAnswers[currentQuestion.id] !== undefined;
+                      const selectedIdx = selectedAnswers[currentQuestion.id];
+                      const isSelected = selectedIdx === optIdx;
+                      const isCorrect = currentQuestion.correctIndex === optIdx;
+                      const isWrongSelected = hasAnswered && isSelected && !isCorrect;
+                      const isCorrectHighlight = hasAnswered && isCorrect;
+
+                      let btnClass = "border-white/10 text-white/70";
+                      if (!hasAnswered) {
+                        btnClass = isSelected
+                          ? "bg-[#0866FF]/10 border-[#0866FF] text-white"
+                          : "border-white/10 text-white/70 hover:bg-white/5 hover:text-white";
+                      } else if (isCorrectHighlight) {
+                        btnClass = "bg-emerald-500/15 border-emerald-400 text-white";
+                      } else if (isWrongSelected) {
+                        btnClass = "bg-red-500/15 border-red-400 text-white/80";
+                      } else {
+                        btnClass = "border-white/10 text-white/40 opacity-50";
+                      }
+
+                      let circleClass = "border-white/30 text-white/40";
+                      if (!hasAnswered && isSelected) {
+                        circleClass = "border-[#0866FF] bg-[#0866FF] text-white";
+                      } else if (isCorrectHighlight) {
+                        circleClass = "border-emerald-400 bg-emerald-500 text-white";
+                      } else if (isWrongSelected) {
+                        circleClass = "border-red-400 bg-red-500 text-white";
+                      }
+
                       return (
                         <button
                           key={optIdx}
                           type="button"
-                          onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQuestion.id]: optIdx }))}
-                          className={`w-full flex items-start gap-3.5 px-4 py-3.5 rounded-xl border text-left text-sm font-medium transition-all ${
-                            active
-                              ? "bg-[#0866FF]/10 border-[#0866FF] text-white"
-                              : "border-white/10 text-white/70 hover:bg-white/5 hover:text-white"
-                          }`}
+                          onClick={() => {
+                            if (selectedAnswers[currentQuestion.id] === undefined) {
+                              setSelectedAnswers((prev) => ({ ...prev, [currentQuestion.id]: optIdx }));
+                            }
+                          }}
+                          disabled={hasAnswered}
+                          className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl border text-left text-sm font-medium transition-all disabled:cursor-default ${btnClass}`}
                         >
-                          <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 ${
-                            active
-                              ? "border-[#0866FF] bg-[#0866FF] text-white"
-                              : "border-white/30 text-white/40"
-                          }`}>
-                            {String.fromCharCode(65 + optIdx)}
+                          <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 ${circleClass}`}>
+                            {hasAnswered && isCorrectHighlight ? (
+                              <Check className="w-3 h-3" />
+                            ) : hasAnswered && isWrongSelected ? (
+                              <XCircle className="w-3 h-3" />
+                            ) : (
+                              String.fromCharCode(65 + optIdx)
+                            )}
                           </span>
                           <span className="flex-1 leading-normal">{opt}</span>
+                          {hasAnswered && isCorrectHighlight && (
+                            <span className="text-[10px] font-bold text-emerald-400 flex-shrink-0">✓ Benar</span>
+                          )}
+                          {hasAnswered && isWrongSelected && (
+                            <span className="text-[10px] font-bold text-red-400 flex-shrink-0">Pilihan kamu</span>
+                          )}
                         </button>
                       );
                     })}
                   </div>
+
+                  {/* Feedback banner */}
+                  {selectedAnswers[currentQuestion.id] !== undefined && (() => {
+                    const isRight = selectedAnswers[currentQuestion.id] === currentQuestion.correctIndex;
+                    return (
+                      <div className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${
+                        isRight
+                          ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
+                          : "bg-red-500/15 border border-red-500/30 text-red-300"
+                      }`}>
+                        {isRight ? (
+                          <><CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Jawaban kamu benar! 🎉</>
+                        ) : (
+                          <><XCircle className="w-4 h-4 flex-shrink-0" /> Jawaban salah — jawaban yang benar sudah disorot hijau di atas.</>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Footer action buttons */}

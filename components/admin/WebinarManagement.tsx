@@ -1,11 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Video, Plus, Pencil, Trash2, Loader2, X, Check,
-  AlertCircle, CheckCircle2, Award, Calendar, User, Link as LinkIcon, Eye, EyeOff, ClipboardList
+  AlertCircle, CheckCircle2, Award, Calendar, User, Link as LinkIcon, Eye, EyeOff, ClipboardList,
+  Users, ShieldCheck, XCircle, RefreshCw
 } from "lucide-react";
 import type { Webinar, WebinarQuestion } from "@/types";
+
+interface AttemptWithUser {
+  id: string;
+  userId: string;
+  webinarId: string;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  passed: boolean;
+  certNumber: string | null;
+  createdAt: string;
+  user: { id: string; name: string; email: string; image?: string | null };
+}
 
 interface QForm {
   question: string;
@@ -55,7 +69,26 @@ export default function WebinarManagement({
   });
 
   const [selectedWebinarId, setSelectedWebinarId] = useState<string>(initialWebinars[0]?.id ?? "");
-  const [activeTab, setActiveTab] = useState<"detail" | "exam">("detail");
+  const [activeTab, setActiveTab] = useState<"detail" | "exam" | "participants">("detail");
+
+  // Attempts state per webinar
+  const [attemptsByWebinar, setAttemptsByWebinar] = useState<Record<string, AttemptWithUser[]>>({});
+  const [loadingAttempts, setLoadingAttempts] = useState(false);
+
+  const fetchAttempts = useCallback(async (webinarId: string) => {
+    setLoadingAttempts(true);
+    try {
+      const res = await fetch(`/api/admin/webinars/${webinarId}/attempts`);
+      if (res.ok) {
+        const data: AttemptWithUser[] = await res.json();
+        setAttemptsByWebinar((prev) => ({ ...prev, [webinarId]: data }));
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setLoadingAttempts(false);
+    }
+  }, []);
 
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
@@ -406,6 +439,19 @@ export default function WebinarManagement({
                 >
                   Ujian Sertifikat ({currentQuestions.length}/10)
                 </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("participants");
+                    if (!attemptsByWebinar[selectedWebinarId]) {
+                      fetchAttempts(selectedWebinarId);
+                    }
+                  }}
+                  className={`flex-1 py-3.5 text-center text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 ${
+                    activeTab === "participants" ? "border-[#0866FF] text-[#0866FF]" : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <Users className="w-4 h-4" /> Peserta & Sertifikat
+                </button>
               </div>
 
               {/* TAB CONTENT: DETAIL */}
@@ -572,6 +618,145 @@ export default function WebinarManagement({
                   </div>
                 </div>
               )}
+              {/* TAB CONTENT: PARTICIPANTS */}
+              {activeTab === "participants" && (() => {
+                const attempts = attemptsByWebinar[selectedWebinarId] || [];
+                const passedList = attempts.filter((a) => a.passed);
+                const failedList = attempts.filter((a) => !a.passed);
+                const passRate = attempts.length > 0 ? Math.round((passedList.length / attempts.length) * 100) : 0;
+
+                return (
+                  <div className="p-6 space-y-5">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-[#1c2b33] flex items-center gap-1.5">
+                          <Users className="w-5 h-5 text-[#0866FF]" /> Peserta & Hasil Ujian
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Data semua pengguna yang sudah mengikuti ujian webinar ini.</p>
+                      </div>
+                      <button
+                        onClick={() => fetchAttempts(selectedWebinarId)}
+                        disabled={loadingAttempts}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#0866FF] transition-colors disabled:opacity-40"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${loadingAttempts ? "animate-spin" : ""}`} />
+                        Refresh
+                      </button>
+                    </div>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="bg-[#e7f0ff] rounded-xl p-4 space-y-1">
+                        <p className="text-xs text-[#0866FF] font-semibold">Total Peserta Ujian</p>
+                        <p className="text-2xl font-extrabold text-[#0866FF]">{attempts.length}</p>
+                      </div>
+                      <div className="bg-emerald-50 rounded-xl p-4 space-y-1">
+                        <p className="text-xs text-emerald-600 font-semibold">Lulus & Bersertifikat</p>
+                        <p className="text-2xl font-extrabold text-emerald-600">{passedList.length}</p>
+                      </div>
+                      <div className="bg-red-50 rounded-xl p-4 space-y-1">
+                        <p className="text-xs text-red-500 font-semibold">Belum Lulus</p>
+                        <p className="text-2xl font-extrabold text-red-500">{failedList.length}</p>
+                      </div>
+                      <div className="bg-amber-50 rounded-xl p-4 space-y-1">
+                        <p className="text-xs text-amber-600 font-semibold">Tingkat Kelulusan</p>
+                        <p className="text-2xl font-extrabold text-amber-600">{passRate}%</p>
+                      </div>
+                    </div>
+
+                    {/* Table */}
+                    {loadingAttempts ? (
+                      <div className="flex items-center justify-center py-16 gap-2 text-gray-400">
+                        <Loader2 className="w-5 h-5 animate-spin" /> Memuat data peserta...
+                      </div>
+                    ) : attempts.length === 0 ? (
+                      <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                        <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                        <p className="text-sm text-gray-400">Belum ada peserta yang mengikuti ujian webinar ini.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto rounded-xl border border-gray-100">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                              <th className="text-left text-xs font-bold text-gray-400 px-4 py-3">Peserta</th>
+                              <th className="text-center text-xs font-bold text-gray-400 px-4 py-3">Skor</th>
+                              <th className="text-center text-xs font-bold text-gray-400 px-4 py-3">Status</th>
+                              <th className="text-left text-xs font-bold text-gray-400 px-4 py-3">No. Sertifikat</th>
+                              <th className="text-left text-xs font-bold text-gray-400 px-4 py-3">Tanggal Ujian</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {attempts.map((attempt) => (
+                              <tr key={attempt.id} className="hover:bg-gray-50/60 transition-colors">
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2.5">
+                                    {attempt.user.image ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={attempt.user.image} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                                    ) : (
+                                      <div className="w-7 h-7 rounded-full bg-[#e7f0ff] flex items-center justify-center flex-shrink-0">
+                                        <User className="w-3.5 h-3.5 text-[#0866FF]" />
+                                      </div>
+                                    )}
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-[#1c2b33] truncate max-w-[160px]">{attempt.user.name || "Unknown"}</p>
+                                      <p className="text-[10px] text-gray-400 truncate max-w-[160px]">{attempt.user.email}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`text-sm font-extrabold ${
+                                    attempt.passed ? "text-emerald-600" : "text-red-500"
+                                  }`}>
+                                    {attempt.score}%
+                                  </span>
+                                  <p className="text-[10px] text-gray-400">{attempt.correctCount}/{attempt.totalCount} benar</p>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex justify-center">
+                                    {attempt.passed ? (
+                                      <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg">
+                                        <ShieldCheck className="w-3 h-3" /> Lulus
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-red-50 text-red-500 px-2 py-1 rounded-lg">
+                                        <XCircle className="w-3 h-3" /> Belum Lulus
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {attempt.certNumber ? (
+                                    <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded">
+                                      {attempt.certNumber}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-gray-300">—</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(attempt.createdAt).toLocaleDateString("id-ID", {
+                                      day: "numeric", month: "short", year: "numeric"
+                                    })}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400">
+                                    {new Date(attempt.createdAt).toLocaleTimeString("id-ID", {
+                                      hour: "2-digit", minute: "2-digit"
+                                    })} WIB
+                                  </p>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400 shadow-sm">
