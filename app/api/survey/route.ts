@@ -5,10 +5,10 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 
 const surveySchema = z.object({
-  hasAdvertised: z.enum(["Pernah", "Belum Pernah"]),
+  hasAdvertised: z.string().min(1, "Pilih pengalaman beriklan"),
   profession: z.string().min(1, "Profesi wajib diisi"),
-  whatsapp: z.string().min(5, "Nomor WhatsApp wajib diisi"),
-  hasWebsite: z.enum(["Punya", "Belum Punya"]),
+  whatsapp: z.string().default(""),
+  hasWebsite: z.string().min(1, "Pilih apakah punya website"),
   socialMedia: z.string().default(""),
 });
 
@@ -23,11 +23,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Cek apakah sudah pernah mengisi
-  const { data: existing } = await supabase
+  const { data: existing, error: checkError } = await supabase
     .from("SurveyResponse")
     .select("id")
     .eq("userId", session.user.id)
     .maybeSingle();
+
+  if (checkError) {
+    console.error("Survey check error:", checkError);
+    return NextResponse.json({ error: `DB Error: ${checkError.message}` }, { status: 500 });
+  }
 
   if (existing) {
     return NextResponse.json({ error: "Survei sudah pernah diisi." }, { status: 409 });
@@ -46,11 +51,12 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("Survey submit error:", error);
-    return NextResponse.json({ error: "Gagal menyimpan survei" }, { status: 500 });
+    return NextResponse.json({ error: `Gagal menyimpan: ${error.message}` }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
 }
+
 
 // GET: Cek apakah user sudah mengisi survei
 export async function GET() {
