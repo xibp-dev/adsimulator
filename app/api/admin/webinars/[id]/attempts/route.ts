@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 async function requireAdmin() {
   const session = await auth();
@@ -19,7 +19,7 @@ export async function GET(
   const { id: webinarId } = await params;
 
   // Ambil semua attempt untuk webinar ini
-  const { data: attempts, error: attemptsError } = await supabase
+  const { data: attempts, error: attemptsError } = await supabaseAdmin
     .from("WebinarAttempt")
     .select("*")
     .eq("webinarId", webinarId)
@@ -36,7 +36,7 @@ export async function GET(
 
   // Ambil data user untuk semua userId yang unik
   const userIds = [...new Set(attempts.map((a: any) => a.userId))];
-  const { data: users } = await supabase
+  const { data: users } = await supabaseAdmin
     .from("User")
     .select("id, name, email")
     .in("id", userIds);
@@ -54,3 +54,34 @@ export async function GET(
 
   return NextResponse.json(result);
 }
+
+// DELETE: Reset (hapus) attempt ujian webinar
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await requireAdmin()))
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id: webinarId } = await params;
+  const { searchParams } = new URL(req.url);
+  const attemptId = searchParams.get("attemptId");
+
+  if (!attemptId) {
+    return NextResponse.json({ error: "Attempt ID wajib diisi" }, { status: 400 });
+  }
+
+  const { error } = await supabaseAdmin
+    .from("WebinarAttempt")
+    .delete()
+    .eq("id", attemptId)
+    .eq("webinarId", webinarId);
+
+  if (error) {
+    console.error("Error deleting attempt:", error);
+    return NextResponse.json({ error: "Gagal meriset ujian" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
+

@@ -71,3 +71,42 @@ export async function GET() {
 
   return NextResponse.json({ hasCompleted: !!data });
 }
+
+// DELETE: Hapus survei (untuk reset)
+export async function DELETE(req: NextRequest) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const responseId = searchParams.get("id");
+  const all = searchParams.get("all");
+
+  if (all === "true") {
+    // Hapus semua data survei
+    const { error } = await supabaseAdmin.from("SurveyResponse").delete().neq("id", "none");
+    if (error) {
+      console.error("Survey reset all error:", error);
+      return NextResponse.json({ error: "Gagal mereset semua survei" }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!responseId) {
+    return NextResponse.json({ error: "ID respon wajib diisi" }, { status: 400 });
+  }
+
+  const { error } = await supabaseAdmin
+    .from("SurveyResponse")
+    .delete()
+    .eq("id", responseId);
+
+  if (error) {
+    console.error("Survey delete error:", error);
+    return NextResponse.json({ error: "Gagal menghapus survei" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
+

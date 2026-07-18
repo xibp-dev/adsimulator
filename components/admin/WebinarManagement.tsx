@@ -91,6 +91,26 @@ export default function WebinarManagement({
     }
   }, []);
 
+  const resetAttempt = async (attemptId: string, userName: string) => {
+    if (!confirm(`Reset ujian webinar untuk "${userName}"? Ini akan menghapus hasil ujian yang gagal agar peserta bisa mencoba lagi.`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/webinars/${selectedWebinarId}/attempts?attemptId=${attemptId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setAttemptsByWebinar((prev) => ({
+          ...prev,
+          [selectedWebinarId]: (prev[selectedWebinarId] || []).filter((a) => a.id !== attemptId),
+        }));
+      } else {
+        alert("Gagal meriset ujian.");
+      }
+    } catch {
+      alert("Gagal terhubung ke server.");
+    }
+  };
+
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -706,6 +726,7 @@ export default function WebinarManagement({
                               <th className="text-center text-xs font-bold text-gray-400 px-4 py-3">Status</th>
                               <th className="text-left text-xs font-bold text-gray-400 px-4 py-3">No. Sertifikat</th>
                               <th className="text-left text-xs font-bold text-gray-400 px-4 py-3">Tanggal Ujian</th>
+                              <th className="text-center text-xs font-bold text-gray-400 px-4 py-3">Aksi</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
@@ -768,6 +789,18 @@ export default function WebinarManagement({
                                       hour: "2-digit", minute: "2-digit"
                                     })} WIB
                                   </p>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {!attempt.passed ? (
+                                    <button
+                                      onClick={() => resetAttempt(attempt.id, attempt.user.name || "Peserta")}
+                                      className="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-650 hover:text-red-750 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors border border-red-100 text-red-600"
+                                    >
+                                      Reset Ujian
+                                    </button>
+                                  ) : (
+                                    <span className="text-[10px] text-gray-300">—</span>
+                                  )}
                                 </td>
                               </tr>
                             ))}

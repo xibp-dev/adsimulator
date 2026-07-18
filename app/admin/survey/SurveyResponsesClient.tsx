@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   ClipboardCheck, Users, Megaphone, Briefcase, Globe, Share2, Phone,
-  Download, Search, ChevronDown, ChevronUp, CheckCircle2, XCircle
+  Download, Search, ChevronDown, ChevronUp, CheckCircle2, XCircle, Trash2, RotateCcw
 } from "lucide-react";
 
 interface SurveyRow {
@@ -19,7 +19,8 @@ interface SurveyRow {
   createdAt: string;
 }
 
-export default function SurveyResponsesClient({ responses }: { responses: SurveyRow[] }) {
+export default function SurveyResponsesClient({ responses: initialResponses }: { responses: SurveyRow[] }) {
+  const [responses, setResponses] = useState<SurveyRow[]>(initialResponses);
   const [search, setSearch] = useState("");
   const [filterAdv, setFilterAdv] = useState<"all" | "Pernah" | "Belum Pernah">("all");
   const [filterWeb, setFilterWeb] = useState<"all" | "Punya" | "Belum Punya">("all");
@@ -45,6 +46,36 @@ export default function SurveyResponsesClient({ responses }: { responses: Survey
     professionCounts[r.profession] = (professionCounts[r.profession] || 0) + 1;
   });
   const topProfession = Object.entries(professionCounts).sort((a, b) => b[1] - a[1])[0];
+
+  async function deleteResponse(id: string, name: string) {
+    if (!confirm(`Hapus data survei dari "${name}"? Pengguna akan diminta mengisi survei lagi saat masuk dashboard.`)) return;
+
+    try {
+      const res = await fetch(`/api/survey?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setResponses(prev => prev.filter(r => r.id !== id));
+      } else {
+        alert("Gagal menghapus respon.");
+      }
+    } catch {
+      alert("Terjadi kesalahan koneksi.");
+    }
+  }
+
+  async function resetAll() {
+    if (!confirm("Hapus SEMUA data survei dari semua pengguna? Semua pengguna harus mengisi survei ulang. Tindakan ini tidak bisa dibatalkan!")) return;
+
+    try {
+      const res = await fetch("/api/survey?all=true", { method: "DELETE" });
+      if (res.ok) {
+        setResponses([]);
+      } else {
+        alert("Gagal mereset semua survei.");
+      }
+    } catch {
+      alert("Terjadi kesalahan koneksi.");
+    }
+  }
 
   function downloadCSV() {
     const headers = ["Nama", "Email", "Pernah Beriklan", "Profesi", "WhatsApp", "Punya Website", "Sosial Media", "Tanggal Isi"];
@@ -73,15 +104,26 @@ export default function SurveyResponsesClient({ responses }: { responses: Survey
           </h1>
           <p className="text-sm text-gray-400 mt-0.5">Semua jawaban survei profil yang telah diisi pengguna.</p>
         </div>
-        {filtered.length > 0 && (
-          <button
-            onClick={downloadCSV}
-            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" /> Export CSV
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {responses.length > 0 && (
+            <button
+              onClick={resetAll}
+              className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-650 hover:text-red-750 border border-red-200 text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm text-red-600"
+            >
+              <RotateCcw className="w-4 h-4" /> Reset Semua
+            </button>
+          )}
+          {filtered.length > 0 && (
+            <button
+              onClick={downloadCSV}
+              className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+            >
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          )}
+        </div>
       </div>
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -219,10 +261,22 @@ export default function SurveyResponsesClient({ responses }: { responses: Survey
                       <td className="px-4 py-3">
                         <p className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</p>
                       </td>
-                      <td className="px-4 py-3 text-gray-400">
-                        {expandedId === r.id
-                          ? <ChevronUp className="w-4 h-4" />
-                          : <ChevronDown className="w-4 h-4" />}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteResponse(r.id, r.userName);
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-650 hover:bg-red-50 rounded-lg transition-all"
+                            title="Hapus Respon"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                          <div className="text-gray-400">
+                            {expandedId === r.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </div>
+                        </div>
                       </td>
                     </tr>
                     {expandedId === r.id && (
