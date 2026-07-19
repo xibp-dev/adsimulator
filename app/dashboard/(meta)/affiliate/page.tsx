@@ -14,11 +14,14 @@ import {
   ArrowRight,
   Loader2,
   Calendar,
-  Gift
+  Gift,
+  RotateCcw,
+  Wallet
 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/simulate";
 import GuidePanel from "@/components/create/GuidePanel";
+import WithdrawModal from "@/components/ui/WithdrawModal";
 
 interface AffiliateStats {
   totalReferrals: number;
@@ -43,6 +46,17 @@ interface Commission {
   createdAt: string;
 }
 
+interface UserWithdrawal {
+  id: string;
+  amount: number;
+  bankName: string;
+  accountName: string;
+  accountNo: string;
+  status: string;
+  note: string;
+  createdAt: string;
+}
+
 export default function AffiliatePage() {
   const [stats, setStats] = useState<AffiliateStats>({
     totalReferrals: 0,
@@ -51,24 +65,34 @@ export default function AffiliatePage() {
   });
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [withdrawals, setWithdrawals] = useState<UserWithdrawal[]>([]);
   const [referralCode, setReferralCode] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"referrals" | "commissions">("referrals");
+  const [showWDModal, setShowWDModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"referrals" | "commissions" | "withdrawals">("referrals");
 
-  useEffect(() => {
-    // Fetch affiliate stats, lists, dan referralCode sekaligus
-    fetch("/api/affiliate")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.stats) setStats(data.stats);
-        if (data.referrals) setReferrals(data.referrals);
-        if (data.commissions) setCommissions(data.commissions);
-        if (data.referralCode) setReferralCode(data.referralCode);
+  // Load all data
+  const loadData = () => {
+    Promise.all([
+      fetch("/api/affiliate").then((res) => res.json()),
+      fetch("/api/affiliate/withdraw").then((res) => res.json())
+    ])
+      .then(([affData, wdData]) => {
+        if (affData.stats) setStats(affData.stats);
+        if (affData.referrals) setReferrals(affData.referrals);
+        if (affData.commissions) setCommissions(affData.commissions);
+        if (affData.referralCode) setReferralCode(affData.referralCode);
+        if (Array.isArray(wdData)) setWithdrawals(wdData);
       })
       .catch((e) => console.error("Error loading affiliate data:", e))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
+
 
   const getAffiliateLink = () => {
     if (typeof window !== "undefined" && referralCode) {
@@ -84,6 +108,12 @@ export default function AffiliatePage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Calculate available balance
+  const totalWD = withdrawals
+    .filter(w => w.status === "PENDING" || w.status === "APPROVED")
+    .reduce((sum, w) => sum + w.amount, 0);
+  const availableBalance = Math.max(0, stats.totalEarnings - totalWD);
 
   if (loading) {
     return (
@@ -131,38 +161,59 @@ export default function AffiliatePage() {
       />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Referrals */}
-        <div className="bg-white border border-[#dddfe2] rounded-2xl p-5 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 text-[#0866FF] rounded-xl flex items-center justify-center">
-            <Users className="w-6 h-6" />
+        <div className="bg-white border border-[#dddfe2] rounded-2xl p-4 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-50 text-[#0866FF] rounded-xl flex items-center justify-center flex-shrink-0">
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Rujukan</span>
-            <h2 className="text-2xl font-black text-gray-900 mt-0.5">{stats.totalReferrals} Orang</h2>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Total Rujukan</span>
+            <h2 className="text-lg font-black text-gray-900 mt-0.5">{stats.totalReferrals} Orang</h2>
           </div>
         </div>
 
         {/* Active Referrals */}
-        <div className="bg-white border border-[#dddfe2] rounded-2xl p-5 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-            <TrendingUp className="w-6 h-6" />
+        <div className="bg-white border border-[#dddfe2] rounded-2xl p-4 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Rujukan Aktif (Premium)</span>
-            <h2 className="text-2xl font-black text-gray-900 mt-0.5">{stats.activeReferrals} Orang</h2>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Rujukan Aktif</span>
+            <h2 className="text-lg font-black text-gray-900 mt-0.5">{stats.activeReferrals} Orang</h2>
           </div>
         </div>
 
         {/* Total Earnings */}
-        <div className="bg-white border border-[#dddfe2] rounded-2xl p-5 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center">
-            <DollarSign className="w-6 h-6" />
+        <div className="bg-white border border-[#dddfe2] rounded-2xl p-4 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Komisi Diterima</span>
-            <h2 className="text-2xl font-black text-gray-900 mt-0.5">{formatCurrency(stats.totalEarnings, "IDR")}</h2>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Total Komisi</span>
+            <h2 className="text-lg font-black text-gray-900 mt-0.5">{formatCurrency(stats.totalEarnings, "IDR")}</h2>
           </div>
+        </div>
+
+        {/* Available Balance / WD */}
+        <div className="bg-[#e7f0ff]/40 border border-[#0866FF]/20 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#0866FF] text-white rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Saldo Tersedia</span>
+              <h2 className="text-lg font-black text-[#0866FF] mt-0.5">{formatCurrency(availableBalance, "IDR")}</h2>
+            </div>
+          </div>
+          {availableBalance >= 10000 && (
+            <button
+              onClick={() => setShowWDModal(true)}
+              className="bg-[#0866FF] hover:bg-[#0757d4] text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm shadow-[#0866FF]/10 whitespace-nowrap"
+            >
+              Tarik Dana
+            </button>
+          )}
         </div>
       </div>
 
@@ -231,6 +282,16 @@ export default function AffiliatePage() {
           >
             💰 Riwayat Komisi ({commissions.length})
           </button>
+          <button
+            onClick={() => setActiveTab("withdrawals")}
+            className={`px-6 py-4 text-xs font-bold border-b-2 transition-colors ${
+              activeTab === "withdrawals" 
+                ? "border-[#0866FF] text-[#0866FF] bg-white" 
+                : "border-transparent text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            💸 Tarik Dana ({withdrawals.length})
+          </button>
         </div>
 
         <div className="p-4 overflow-x-auto">
@@ -266,7 +327,7 @@ export default function AffiliatePage() {
                 </tbody>
               </table>
             )
-          ) : (
+          ) : activeTab === "commissions" ? (
             commissions.length === 0 ? (
               <div className="text-center py-12 text-gray-500 text-xs italic">
                 Belum ada komisi yang dicatat. Dapatkan 20% komisi ketika rujukan Anda berlangganan kelas premium!
@@ -310,9 +371,67 @@ export default function AffiliatePage() {
                 </tbody>
               </table>
             )
+          ) : (
+            withdrawals.length === 0 ? (
+              <div className="text-center py-12 text-gray-500 text-xs italic">
+                Belum ada pengajuan penarikan dana.
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b text-gray-400 font-bold uppercase tracking-wider bg-slate-50/50">
+                    <th className="py-3 px-4">Nominal</th>
+                    <th className="py-3 px-4">Tujuan Rekening</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Catatan Admin</th>
+                    <th className="py-3 px-4">Tanggal Pengajuan</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {withdrawals.map((wd) => (
+                    <tr key={wd.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-gray-800">{formatCurrency(wd.amount, "IDR")}</td>
+                      <td className="py-3.5 px-4 text-gray-600">
+                        <span className="font-bold">{wd.bankName}</span> · <span className="font-mono">{wd.accountNo}</span> ({wd.accountName})
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                          wd.status === "APPROVED" 
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : wd.status === "REJECTED"
+                            ? "bg-red-50 text-red-700 border-red-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}>
+                          {wd.status === "APPROVED" ? "Selesai" : wd.status === "REJECTED" ? "Ditolak" : "Pending"}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-gray-500 italic max-w-[200px] truncate" title={wd.note}>
+                        {wd.note || "—"}
+                      </td>
+                      <td className="py-3.5 px-4 text-gray-400 flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(wd.createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric"
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
           )}
         </div>
       </div>
+
+      {showWDModal && (
+        <WithdrawModal
+          availableBalance={availableBalance}
+          onClose={() => setShowWDModal(false)}
+          onSuccess={loadData}
+        />
+      )}
     </div>
   );
 }

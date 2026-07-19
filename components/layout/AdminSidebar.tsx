@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, BarChart3, Settings, ChevronLeft, Database, Sliders, Sparkles, Crown, GraduationCap, Award, Video, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, Settings, ChevronLeft, Database, Sliders, Sparkles, Crown, GraduationCap, Award, Video, ClipboardList, Banknote } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/admin/sertifikasi", label: "Sertifikasi & Ujian", icon: Award },
   { href: "/admin/webinar", label: "Kelola Webinar", icon: Video },
   { href: "/admin/subscriptions", label: "Langganan LMS", icon: Crown },
+  { href: "/admin/withdrawals", label: "Penarikan Dana (WD)", icon: Banknote },
   { href: "/admin/monitoring", label: "Monitor Konten", icon: BarChart3 },
   { href: "/admin/survey", label: "Data Survei", icon: ClipboardList },
   { href: "/admin/presets", label: "Preset Target & Aset", icon: Database },
