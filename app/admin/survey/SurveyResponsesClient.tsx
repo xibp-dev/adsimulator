@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ClipboardCheck, Users, Megaphone, Briefcase, Globe, Share2, Phone,
   Download, Search, ChevronDown, ChevronUp, CheckCircle2, XCircle, Trash2, RotateCcw
@@ -219,7 +219,7 @@ export default function SurveyResponsesClient({ responses: initialResponses }: {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map((r) => (
-                  <>
+                  <React.Fragment key={r.id}>
                     <tr
                       key={r.id}
                       className="hover:bg-gray-50/60 transition-colors cursor-pointer"
@@ -301,7 +301,7 @@ export default function SurveyResponsesClient({ responses: initialResponses }: {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
