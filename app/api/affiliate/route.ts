@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -10,14 +10,14 @@ export async function GET(req: NextRequest) {
 
   try {
     // 0. Fetch user's own referralCode
-    const { data: currentUser } = await supabase
+    const { data: currentUser } = await supabaseAdmin
       .from("User")
       .select("referralCode")
       .eq("id", userId)
       .single();
 
     // 1. Fetch referred users
-    const { data: referrals, error: refError } = await supabase
+    const { data: referrals, error: refError } = await supabaseAdmin
       .from("User")
       .select("id, name, email, createdAt")
       .eq("referredById", userId);
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     if (refError) throw refError;
 
     // 2. Fetch commissions
-    const { data: commissions, error: commError } = await supabase
+    const { data: commissions, error: commError } = await supabaseAdmin
       .from("AffiliateCommission")
       .select("id, referredUserId, subscriptionId, amount, status, createdAt")
       .eq("referrerId", userId)
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     
     if (referredUserIds.length > 0) {
       const nowIso = new Date().toISOString();
-      const { data: activeSubs } = await supabase
+      const { data: activeSubs } = await supabaseAdmin
         .from("Subscription")
         .select("userId")
         .in("userId", referredUserIds)
@@ -81,3 +81,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Gagal memuat data afiliasi" }, { status: 500 });
   }
 }
+

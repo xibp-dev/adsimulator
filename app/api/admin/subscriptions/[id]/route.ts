@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -21,7 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Aksi tidak valid" }, { status: 400 });
 
-  const { data: sub } = await supabase.from("Subscription").select("*").eq("id", id).single();
+  const { data: sub } = await supabaseAdmin.from("Subscription").select("*").eq("id", id).single();
   if (!sub) return NextResponse.json({ error: "Langganan tidak ditemukan" }, { status: 404 });
 
   const nowIso = new Date().toISOString();
@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // Affiliate Commission Logic (20% of amount)
     try {
-      const { data: userRecord } = await supabase
+      const { data: userRecord } = await supabaseAdmin
         .from("User")
         .select("referredById")
         .eq("id", sub.userId)
@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
       if (userRecord?.referredById && sub.amount > 0) {
         // Check duplication
-        const { data: existingComm } = await supabase
+        const { data: existingComm } = await supabaseAdmin
           .from("AffiliateCommission")
           .select("id")
           .eq("subscriptionId", id)
@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
         if (!existingComm) {
           const commAmount = Math.round(sub.amount * 0.20);
-          await supabase.from("AffiliateCommission").insert({
+          await supabaseAdmin.from("AffiliateCommission").insert({
             id: crypto.randomUUID(),
             referrerId: userRecord.referredById,
             referredUserId: sub.userId,
@@ -84,7 +84,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     };
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("Subscription")
     .update(update)
     .eq("id", id)
