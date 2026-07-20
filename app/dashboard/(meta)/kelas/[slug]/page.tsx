@@ -24,7 +24,7 @@ export default async function ProgramCurriculumPage({ params }: { params: Promis
 
   const [{ data: coursesRaw }, { data: lessonsRaw }, activeSub] = await Promise.all([
     supabase.from("Course").select("*").eq("programId", program.id).eq("published", true).order("sortOrder", { ascending: true }),
-    supabase.from("Lesson").select("courseId, id, durationMin, isPreview").eq("published" as any, true),
+    supabase.from("Lesson").select("courseId, id, durationMin, isPreview"),
     getActiveSubscription(session.user.id),
   ]);
 
