@@ -21,23 +21,24 @@ const patchSchema = z.object({
 });
 
 // PATCH: Update program
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
   // Check slug uniqueness if changing slug
   if (parsed.data.slug) {
-    const { data: dupe } = await supabaseAdmin.from("Program").select("id").eq("slug", parsed.data.slug).neq("id", params.id).limit(1);
+    const { data: dupe } = await supabaseAdmin.from("Program").select("id").eq("slug", parsed.data.slug).neq("id", id).limit(1);
     if (dupe && dupe.length > 0) return NextResponse.json({ error: "Slug sudah digunakan program lain." }, { status: 409 });
   }
 
   const { data, error } = await supabaseAdmin
     .from("Program")
     .update({ ...parsed.data, updatedAt: new Date().toISOString() })
-    .eq("id", params.id)
+    .eq("id", id)
     .select()
     .single();
 
@@ -46,10 +47,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Hapus program (courses tidak ikut terhapus, programId jadi null)
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { error } = await supabaseAdmin.from("Program").delete().eq("id", params.id);
+  const { id } = await params;
+  const { error } = await supabaseAdmin.from("Program").delete().eq("id", id);
   if (error) return NextResponse.json({ error: "Gagal menghapus program" }, { status: 500 });
   return NextResponse.json({ success: true });
 }
