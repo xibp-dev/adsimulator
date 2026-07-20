@@ -3,6 +3,19 @@ export type UserStatus = "ACTIVE" | "SUSPENDED";
 export type SubscriptionStatus = "PENDING" | "ACTIVE" | "EXPIRED" | "REJECTED";
 export type PlanPeriod = "MONTHLY" | "YEARLY";
 
+export interface Program {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  thumbnailEmoji: string;
+  accent: string;
+  isFree: boolean;
+  published: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface Course {
   id: string;
   slug: string;
@@ -16,6 +29,7 @@ export interface Course {
   sortOrder: number;
   published: boolean;
   createdAt: string;
+  programId?: string | null;
 }
 
 export interface Lesson {

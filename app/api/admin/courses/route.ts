@@ -21,6 +21,7 @@ const courseSchema = z.object({
   isFree: z.boolean().default(false),
   sortOrder: z.number().int().default(0),
   published: z.boolean().default(true),
+  programId: z.string().nullable().optional(),
 });
 
 // Daftar semua kelas + jumlah pelajaran
