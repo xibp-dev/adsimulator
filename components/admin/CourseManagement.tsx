@@ -486,8 +486,11 @@ export default function CourseManagement({
               <Field label="Deskripsi singkat">
                 <input value={lessonModal.form.description ?? ""} onChange={e => setLessonModal(m => ({ ...m, form: { ...m.form, description: e.target.value } }))} className={inputCls} placeholder="Ringkasan 1 kalimat" />
               </Field>
-              <Field label="URL Video YouTube (opsional)">
-                <input value={lessonModal.form.videoUrl ?? ""} onChange={e => setLessonModal(m => ({ ...m, form: { ...m.form, videoUrl: e.target.value } }))} className={inputCls} placeholder="https://youtu.be/xxxx" />
+              <Field label="URL Media (Video YouTube / Google Slides / PDF / Word)">
+                <input value={lessonModal.form.videoUrl ?? ""} onChange={e => setLessonModal(m => ({ ...m, form: { ...m.form, videoUrl: e.target.value } }))} className={inputCls} placeholder="mis. https://youtu.be/... atau link Google Slides / PDF" />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Mendukung: Video YouTube, Google Slides (embed/sharing link), Google Drive (PDF/Doc/Slides preview), Direct PDF link (.pdf), dan Microsoft Office links (.docx/.pptx).
+                </p>
               </Field>
               <Field label="Materi / konten">
                 <textarea value={lessonModal.form.content ?? ""} onChange={e => setLessonModal(m => ({ ...m, form: { ...m.form, content: e.target.value } }))} rows={5} className={inputCls} placeholder="Tulis materi pelajaran…" />

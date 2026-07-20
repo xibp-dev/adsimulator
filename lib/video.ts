@@ -31,3 +31,77 @@ export function getYouTubeEmbedUrl(url: string): string | null {
   // youtube-nocookie = mode privasi (privacy-enhanced)
   return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
 }
+
+export interface MediaEmbedInfo {
+  type: "youtube" | "slides" | "pdf" | "office" | "generic";
+  embedUrl: string;
+}
+
+export function getMediaEmbedInfo(url: string): MediaEmbedInfo | null {
+  if (!url) return null;
+  const u = url.trim();
+
+  // 1. YouTube check
+  const ytId = getYouTubeId(u);
+  if (ytId) {
+    const embed = getYouTubeEmbedUrl(u);
+    return embed ? { type: "youtube", embedUrl: embed } : null;
+  }
+
+  // 2. Google Slides check
+  if (u.includes("docs.google.com/presentation")) {
+    let embedUrl = u;
+    const editIndex = u.indexOf("/edit");
+    if (editIndex !== -1) {
+      embedUrl = u.substring(0, editIndex) + "/embed?start=false&loop=false&delayms=3000";
+    } else {
+      const pubIndex = u.indexOf("/pub");
+      if (pubIndex !== -1) {
+        embedUrl = u.substring(0, pubIndex) + "/embed?start=false&loop=false&delayms=3000";
+      }
+    }
+    return { type: "slides", embedUrl };
+  }
+
+  // 3. Google Docs Document check
+  if (u.includes("docs.google.com/document")) {
+    let embedUrl = u;
+    const editIndex = u.indexOf("/edit");
+    if (editIndex !== -1) {
+      embedUrl = u.substring(0, editIndex) + "/preview";
+    }
+    return { type: "office", embedUrl };
+  }
+
+  // 4. Google Drive check (PDF/Doc/Slides)
+  if (u.includes("drive.google.com")) {
+    let embedUrl = u;
+    const viewIndex = u.indexOf("/view");
+    if (viewIndex !== -1) {
+      embedUrl = u.substring(0, viewIndex) + "/preview";
+    } else {
+      const editIndex = u.indexOf("/edit");
+      if (editIndex !== -1) {
+        embedUrl = u.substring(0, editIndex) + "/preview";
+      }
+    }
+    return { type: "pdf", embedUrl };
+  }
+
+  // 5. Direct PDF check
+  if (u.toLowerCase().endsWith(".pdf") || u.toLowerCase().includes(".pdf?")) {
+    return { type: "pdf", embedUrl: u };
+  }
+
+  // 6. Microsoft Office Online files (.docx, .pptx, .xlsx)
+  const isOfficeFile = /\.(docx|doc|pptx|ppt|xlsx|xls)($|\?)/i.test(u);
+  if (isOfficeFile) {
+    return {
+      type: "office",
+      embedUrl: `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(u)}`,
+    };
+  }
+
+  // 7. Generic fallback
+  return { type: "generic", embedUrl: u };
+}

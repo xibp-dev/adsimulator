@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getActiveSubscription } from "@/lib/subscription";
-import { getYouTubeEmbedUrl } from "@/lib/video";
+import { getMediaEmbedInfo } from "@/lib/video";
 import LessonVideo from "@/components/lms/LessonVideo";
 import type { Course, Lesson } from "@/types";
 import {
@@ -65,7 +65,7 @@ export default async function LessonPage({
   const next = idx < lessons.length - 1 ? lessons[idx + 1] : null;
   const nextAccessible = next && (hasActive || c.isFree || next.isPreview);
 
-  const embedUrl = getYouTubeEmbedUrl(lesson.videoUrl);
+  const mediaInfo = getMediaEmbedInfo(lesson.videoUrl);
   const watermark = session.user.email ?? session.user.name ?? "AdSimulator";
 
   return (
@@ -77,15 +77,15 @@ export default async function LessonPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-5">
-          {embedUrl ? (
-            <LessonVideo embedUrl={embedUrl} watermark={watermark} />
+          {mediaInfo ? (
+            <LessonVideo embedUrl={mediaInfo.embedUrl} type={mediaInfo.type} watermark={watermark} />
           ) : (
             <div className="relative aspect-video rounded-2xl bg-gradient-to-br from-[#0f1729] to-[#15233f] flex items-center justify-center overflow-hidden">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 backdrop-blur mb-3">
                   <PlayCircle className="w-9 h-9 text-white" />
                 </div>
-                <p className="text-white/70 text-sm">Video pembelajaran</p>
+                <p className="text-white/70 text-sm">Materi tertulis saja</p>
                 <p className="text-white/40 text-xs mt-0.5">{lesson.durationMin} menit · {c.title}</p>
               </div>
               <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-white/10 text-white/80">
