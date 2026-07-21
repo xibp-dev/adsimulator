@@ -6,6 +6,7 @@ import QrisForm from "./QrisForm";
 import CertificateForm from "./CertificateForm";
 import TraktirToggle from "./TraktirToggle";
 import SurveyToggle from "./SurveyToggle";
+import LmsMaintenanceToggle from "./LmsMaintenanceToggle";
 import SurveyConfigForm from "./SurveyConfigForm";
 import { Search, Globe, Info, CheckCircle, AlertCircle, QrCode, Award, Palette, FileText, ClipboardCheck, Zap, Settings2 } from "lucide-react";
 
@@ -195,6 +196,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <SectionHeader icon={Zap} title="Manajemen Fitur" desc="Aktifkan atau nonaktifkan fitur-fitur platform secara real-time" />
             <div className="p-6 space-y-4">
+              <LmsMaintenanceToggle initialEnabled={settings.lmsMaintenance === true} />
               <SurveyToggle initialEnabled={settings.surveyEnabled === true} />
               <TraktirToggle initialEnabled={settings.traktirEnabled !== false} />
             </div>

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getSiteSettings } from "@/lib/siteSettings";
 import {
   Video, Calendar, User, LayoutGrid, CheckCircle2, Award, UserPlus, UserCheck, Sparkles, AlertCircle, ClipboardCheck
 } from "lucide-react";
@@ -12,6 +13,12 @@ export const metadata = { title: "Webinar Digital Marketing & Ads" };
 export default async function UserWebinarListPage() {
   const session = await auth();
   if (!session) redirect("/login");
+
+  // Maintenance gate — bypass untuk admin
+  const settings = await getSiteSettings();
+  if (settings.lmsMaintenance && session.user.role !== "ADMIN") {
+    redirect("/dashboard/pemeliharaan");
+  }
 
   // Ambil webinar yang terbit, soal webinar, attempt user, dan registrasi user
   const [{ data: webinarsRaw }, { data: questionsRaw }, { data: attemptsRaw }, { data: registrationsRaw }] = await Promise.all([

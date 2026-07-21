@@ -70,3 +70,12 @@ export async function saveSurveyConfig(config: SurveyConfig) {
   }
   return result;
 }
+
+export async function setLmsMaintenance(enabled: boolean) {
+  const result = await updateSiteSettings({ lmsMaintenance: enabled });
+  if (result.success) {
+    updateTag(SITE_SETTINGS_TAG);
+    revalidatePath("/", "layout");
+  }
+  return result;
+}

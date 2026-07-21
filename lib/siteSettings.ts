@@ -63,6 +63,7 @@ export interface SiteSettings {
   certAccent: string;
   traktirEnabled: boolean;
   surveyEnabled: boolean;
+  lmsMaintenance: boolean;
   surveyConfig: SurveyConfig | null;
   updatedAt: string;
 }
@@ -89,6 +90,7 @@ const DEFAULTS: SiteSettings = {
   certAccent: "#0866FF",
   traktirEnabled: true,
   surveyEnabled: false,
+  lmsMaintenance: false,
   surveyConfig: null,
   updatedAt: new Date().toISOString(),
 };

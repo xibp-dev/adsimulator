@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getActiveSubscription } from "@/lib/subscription";
+import { getSiteSettings } from "@/lib/siteSettings";
 import type { Course, Lesson, Program } from "@/types";
 import {
   GraduationCap, Lock, PlayCircle, Sparkles, CheckCircle2,
@@ -21,6 +22,12 @@ const ACCENT_STYLES: Record<string, { bg: string; text: string; border: string; 
 export default async function KelasPage() {
   const session = await auth();
   if (!session) redirect("/login");
+
+  // Maintenance gate — bypass untuk admin
+  const settings = await getSiteSettings();
+  if (settings.lmsMaintenance && session.user.role !== "ADMIN") {
+    redirect("/dashboard/pemeliharaan");
+  }
 
   const [{ data: programsRaw }, { data: coursesRaw }, { data: lessonsRaw }, activeSub] = await Promise.all([
     supabase.from("Program").select("*").eq("published", true).order("sortOrder", { ascending: true }),

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getActiveSubscription } from "@/lib/subscription";
+import { getSiteSettings } from "@/lib/siteSettings";
 import { PASS_SCORE } from "@/lib/exam";
 import type { Course } from "@/types";
 import {
@@ -12,6 +13,12 @@ import {
 export default async function SertifikasiPage() {
   const session = await auth();
   if (!session) redirect("/login");
+
+  // Maintenance gate — bypass untuk admin
+  const settings = await getSiteSettings();
+  if (settings.lmsMaintenance && session.user.role !== "ADMIN") {
+    redirect("/dashboard/pemeliharaan");
+  }
 
   const [{ data: coursesRaw }, { data: questionsRaw }, { data: attemptsRaw }, activeSub] = await Promise.all([
     supabase.from("Course").select("*").eq("published", true).order("sortOrder", { ascending: true }),
