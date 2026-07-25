@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
 import { evaluateAd } from "@/lib/evaluate";
 import { simulateDailyMetrics } from "@/lib/simulate";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 // Proses iklan IN_REVIEW milik user yang sedang login → ACTIVE/REJECTED.
 // Dipanggil saat membuka Kelola Iklan. Semua operasi DB dibatch agar ringan.

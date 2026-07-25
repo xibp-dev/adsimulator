@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { z } from "zod";
-import crypto from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 const patchSchema = z.object({
   action: z.enum(["approve", "reject"]),

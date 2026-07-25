@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
 import { z } from "zod";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 const createSchema = z.object({
   name: z.string().min(1, "Nama Halaman wajib diisi"),

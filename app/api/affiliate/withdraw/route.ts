@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import crypto from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 // GET: Ambil daftar penarikan milik user yang sedang login
 export async function GET() {

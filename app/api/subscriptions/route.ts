@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { getPlan } from "@/lib/subscription";
 import { getSiteSettings } from "@/lib/siteSettings";
 import { generateDynamicQris, isValidQris } from "@/lib/qris";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 import { z } from "zod";
 
 const createSchema = z.object({

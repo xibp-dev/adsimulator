@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import jsQR from "jsqr";
-import { Jimp } from "jimp";
 
 async function requireAdmin() {
   const session = await auth();
@@ -35,6 +34,10 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Dynamic import Jimp untuk edge compatibility
+    const JimpModule = await import("jimp");
+    const Jimp = JimpModule.Jimp || (JimpModule as any).default || JimpModule;
 
     // Baca gambar dengan Jimp dan ambil pixel data
     const image = await Jimp.read(buffer);

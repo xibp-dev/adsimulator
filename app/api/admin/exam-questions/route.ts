@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 import { z } from "zod";
 
 async function requireAdmin() {

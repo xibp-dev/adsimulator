@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter"),

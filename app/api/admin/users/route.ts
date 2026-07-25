@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 const createSchema = z.object({
   name: z.string().min(1),

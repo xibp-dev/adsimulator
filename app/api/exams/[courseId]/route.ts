@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { supabase } from "@/lib/supabase";
 import { getActiveSubscription } from "@/lib/subscription";
 import { computeScore, isPassed, makeCertNumber } from "@/lib/exam";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 import { z } from "zod";
 
 const submitSchema = z.object({

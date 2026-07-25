@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { randomUUID } from "crypto";
+const randomUUID = () => crypto.randomUUID();
 
 // GET  /api/webinars/[webinarId]/register → cek apakah sudah terdaftar
 // POST /api/webinars/[webinarId]/register → daftar webinar
