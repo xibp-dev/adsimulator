@@ -269,7 +269,7 @@ export default function WebinarDetailClient({
                     src={youtubeEmbed!}
                     title="Webinar Live Stream"
                     frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="absolute inset-0 w-full h-full"
                   />

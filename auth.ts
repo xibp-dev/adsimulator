@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import { Role } from "@/types";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  basePath: "/api/auth",
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "metalabs-secret-key-change-in-production",
   providers: [
     CredentialsProvider({
       name: "credentials",

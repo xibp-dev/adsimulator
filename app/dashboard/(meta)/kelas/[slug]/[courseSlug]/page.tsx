@@ -94,26 +94,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
         </div>
       )}
 
-      {/* Exam / certificate CTA */}
-      {hasExam && courseAccess && (
-        <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 ${hasCertificate ? "bg-purple-50 border border-purple-200" : "bg-gray-50 border border-gray-200"}`}>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${hasCertificate ? "bg-purple-500" : "bg-gray-200"}`}>
-            {hasCertificate ? <Award className="w-5 h-5 text-white" /> : <ClipboardCheck className="w-5 h-5 text-gray-500" />}
-          </div>
-          <div className="flex-1">
-            {hasCertificate
-              ? <><p className="text-sm font-bold text-purple-800">Kamu sudah lulus ujian! 🎉</p><p className="text-xs text-purple-600">Sertifikat tersedia di profil kamu.</p></>
-              : <><p className="text-sm font-bold text-gray-700">Ujian tersedia</p><p className="text-xs text-gray-500">Selesaikan semua pelajaran lalu ambil ujian untuk mendapatkan sertifikat.</p></>
-            }
-          </div>
-          <Link
-            href={`/dashboard/sertifikasi/${c.id}/exam`}
-            className={`text-xs font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap ${hasCertificate ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-[#0866FF] text-white hover:bg-[#0757d4]"}`}
-          >
-            {hasCertificate ? "Lihat Sertifikat" : "Ambil Ujian"}
-          </Link>
-        </div>
-      )}
 
       {/* Lesson list */}
       <div className="space-y-4">

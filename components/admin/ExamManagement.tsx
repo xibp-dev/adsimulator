@@ -2,29 +2,41 @@
 
 import { useState } from "react";
 import {
-  ClipboardList, Plus, Pencil, Trash2, Loader2, X, Check, AlertCircle, CheckCircle2, Award,
+  ClipboardList, Plus, Pencil, Trash2, Loader2, X, Check, AlertCircle, CheckCircle2, Award, BookOpen,
 } from "lucide-react";
 
-interface CourseLite {
+interface ClassLite {
   id: string;
   title: string;
   thumbnailEmoji: string;
-  level: string;
+  courses: { id: string; title: string }[];
 }
+
 interface Question {
   id: string; courseId: string; question: string; options: string; correctIndex: number; sortOrder: number; createdAt: string;
 }
-interface QForm { question: string; options: string[]; correctIndex: number; sortOrder: number; }
+
+interface QForm { question: string; options: string[]; correctIndex: number; sortOrder: number; targetCourseId?: string; }
 
 export default function ExamManagement({
-  initialCourses, initialQuestions,
-}: { initialCourses: CourseLite[]; initialQuestions: Question[] }) {
-  const [questionsByCourse, setQuestionsByCourse] = useState<Record<string, Question[]>>(() => {
+  initialClasses, initialQuestions,
+}: { initialClasses: ClassLite[]; initialQuestions: Question[] }) {
+  // Map courseId ke classId
+  const courseToClassMap = new Map<string, string>();
+  initialClasses.forEach((cls) => {
+    cls.courses.forEach((c) => courseToClassMap.set(c.id, cls.id));
+  });
+
+  const [questionsByClass, setQuestionsByClass] = useState<Record<string, Question[]>>(() => {
     const map: Record<string, Question[]> = {};
-    initialQuestions.forEach((q) => { (map[q.courseId] ??= []).push(q); });
+    initialQuestions.forEach((q) => {
+      const classId = courseToClassMap.get(q.courseId) || q.courseId;
+      (map[classId] ??= []).push(q);
+    });
     return map;
   });
-  const [selectedId, setSelectedId] = useState<string>(initialCourses[0]?.id ?? "");
+
+  const [selectedClassId, setSelectedClassId] = useState<string>(initialClasses[0]?.id ?? "");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -32,19 +44,29 @@ export default function ExamManagement({
     open: false, editing: null, form: { question: "", options: ["", "", "", ""], correctIndex: 0, sortOrder: 0 },
   });
 
-  const selected = initialCourses.find((c) => c.id === selectedId);
-  const questions = questionsByCourse[selectedId] || [];
-  const totalQuestions = Object.values(questionsByCourse).reduce((a, l) => a + l.length, 0);
+  const selectedClass = initialClasses.find((c) => c.id === selectedClassId);
+  const questions = questionsByClass[selectedClassId] || [];
+  const totalQuestions = Object.values(questionsByClass).reduce((a, l) => a + l.length, 0);
 
   function openNew() {
     setErr("");
-    setQModal({ open: true, editing: null, form: { question: "", options: ["", "", "", ""], correctIndex: 0, sortOrder: questions.length } });
+    const defaultCourseId = selectedClass?.courses[0]?.id || "";
+    setQModal({
+      open: true,
+      editing: null,
+      form: { question: "", options: ["", "", "", ""], correctIndex: 0, sortOrder: questions.length, targetCourseId: defaultCourseId },
+    });
   }
+
   function openEdit(q: Question) {
     let options: string[] = [];
     try { options = JSON.parse(q.options); } catch { options = ["", ""]; }
     setErr("");
-    setQModal({ open: true, editing: q, form: { question: q.question, options, correctIndex: q.correctIndex, sortOrder: q.sortOrder } });
+    setQModal({
+      open: true,
+      editing: q,
+      form: { question: q.question, options, correctIndex: q.correctIndex, sortOrder: q.sortOrder, targetCourseId: q.courseId },
+    });
   }
 
   async function save() {
@@ -53,6 +75,10 @@ export default function ExamManagement({
     if (!f.question.trim()) { setErr("Pertanyaan wajib diisi."); return; }
     if (cleanOptions.length < 2) { setErr("Minimal 2 pilihan jawaban."); return; }
     if (f.correctIndex >= cleanOptions.length) { setErr("Pilih jawaban benar yang valid."); return; }
+
+    const targetCourseId = f.targetCourseId || selectedClass?.courses[0]?.id;
+    if (!targetCourseId) { setErr("Tidak ditemukan materi target di kelas ini."); return; }
+
     setSaving(true); setErr("");
     try {
       const editing = qModal.editing;
@@ -60,14 +86,14 @@ export default function ExamManagement({
         method: editing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          courseId: selectedId, question: f.question, options: cleanOptions,
+          courseId: targetCourseId, question: f.question, options: cleanOptions,
           correctIndex: f.correctIndex, sortOrder: Number(f.sortOrder) || 0,
         }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? "Gagal menyimpan soal"); return; }
-      setQuestionsByCourse((prev) => {
-        const list = [...(prev[selectedId] || [])];
+      setQuestionsByClass((prev) => {
+        const list = [...(prev[selectedClassId] || [])];
         if (editing) {
           const i = list.findIndex((x) => x.id === editing.id);
           if (i >= 0) list[i] = data;
@@ -75,7 +101,7 @@ export default function ExamManagement({
           list.push(data);
         }
         list.sort((a, b) => a.sortOrder - b.sortOrder);
-        return { ...prev, [selectedId]: list };
+        return { ...prev, [selectedClassId]: list };
       });
       setQModal((m) => ({ ...m, open: false }));
     } catch { setErr("Gagal terhubung ke server"); }
@@ -86,7 +112,10 @@ export default function ExamManagement({
     if (!confirm("Hapus soal ini?")) return;
     const res = await fetch(`/api/admin/exam-questions/${q.id}`, { method: "DELETE" });
     if (res.ok) {
-      setQuestionsByCourse((prev) => ({ ...prev, [q.courseId]: (prev[q.courseId] || []).filter((x) => x.id !== q.id) }));
+      setQuestionsByClass((prev) => ({
+        ...prev,
+        [selectedClassId]: (prev[selectedClassId] || []).filter((x) => x.id !== q.id),
+      }));
     } else { alert("Gagal menghapus soal"); }
   }
 
@@ -113,36 +142,36 @@ export default function ExamManagement({
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-[#1c2b33] flex items-center gap-2">
-            <Award className="w-6 h-6 text-amber-500" /> Sertifikasi & Ujian
+            <Award className="w-6 h-6 text-amber-500" /> Kelola Ujian Sertifikasi Kelas
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">{totalQuestions} soal di {initialCourses.length} kelas · nilai lulus di atas 85.</p>
+          <p className="text-sm text-gray-400 mt-0.5">{totalQuestions} soal di {initialClasses.length} kelas · nilai lulus di atas 85.</p>
         </div>
-        <button onClick={openNew} disabled={!selectedId} className="inline-flex items-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50">
-          <Plus className="w-4 h-4" /> Tambah Soal
+        <button onClick={openNew} disabled={!selectedClassId} className="inline-flex items-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50">
+          <Plus className="w-4 h-4" /> Tambah Soal Ujian
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Daftar kelas */}
+        {/* Daftar Kelas */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-fit">
           <div className="px-5 py-4 border-b border-gray-50">
             <p className="text-sm font-bold text-[#1c2b33]">Pilih Kelas</p>
-            <p className="text-xs text-gray-400">Soal ujian dikelola per kelas</p>
+            <p className="text-xs text-gray-400">Soal ujian dikelola per kelas/program</p>
           </div>
           <div className="divide-y divide-gray-50">
-            {initialCourses.map((c) => {
-              const n = (questionsByCourse[c.id] || []).length;
-              const active = c.id === selectedId;
+            {initialClasses.map((c) => {
+              const n = (questionsByClass[c.id] || []).length;
+              const active = c.id === selectedClassId;
               return (
                 <button
                   key={c.id}
-                  onClick={() => setSelectedId(c.id)}
+                  onClick={() => setSelectedClassId(c.id)}
                   className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors ${active ? "bg-[#e7f0ff]" : "hover:bg-gray-50/70"}`}
                 >
                   <span className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center text-lg flex-shrink-0">{c.thumbnailEmoji}</span>
                   <span className="flex-1 min-w-0">
                     <span className={`block text-sm font-semibold truncate ${active ? "text-[#0866FF]" : "text-[#1c2b33]"}`}>{c.title}</span>
-                    <span className="block text-xs text-gray-400">{c.level}</span>
+                    <span className="block text-xs text-gray-400">{c.courses.length} modul materi</span>
                   </span>
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${n > 0 ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400"}`}>
                     {n} soal
@@ -150,18 +179,18 @@ export default function ExamManagement({
                 </button>
               );
             })}
-            {initialCourses.length === 0 && (
+            {initialClasses.length === 0 && (
               <p className="text-sm text-gray-400 text-center py-10">Belum ada kelas. Buat di Kelola Kelas dulu.</p>
             )}
           </div>
         </div>
 
-        {/* Daftar soal kelas terpilih */}
+        {/* Daftar Soal Kelas Terpilih */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
             <div className="flex items-center gap-2 min-w-0">
               <ClipboardList className="w-4 h-4 text-[#0866FF] flex-shrink-0" />
-              <p className="text-sm font-bold text-[#1c2b33] truncate">{selected ? selected.title : "—"}</p>
+              <p className="text-sm font-bold text-[#1c2b33] truncate">Ujian Sertifikasi: {selectedClass ? selectedClass.title : "—"}</p>
             </div>
             <span className="text-xs font-semibold text-gray-400 bg-gray-50 px-2.5 py-1 rounded-full flex-shrink-0">{questions.length} soal</span>
           </div>
@@ -201,12 +230,29 @@ export default function ExamManagement({
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="text-base font-bold text-[#1c2b33] flex items-center gap-2">
-                <ClipboardList className="w-5 h-5 text-[#0866FF]" /> {qModal.editing ? "Edit Soal" : "Tambah Soal"}
+                <ClipboardList className="w-5 h-5 text-[#0866FF]" /> {qModal.editing ? "Edit Soal Ujian" : "Tambah Soal Ujian"}
               </h2>
               <button onClick={() => setQModal((m) => ({ ...m, open: false }))} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
             </div>
             <div className="p-5 space-y-4 max-h-[65vh] overflow-y-auto">
-              <p className="text-xs text-gray-400 -mt-1">Kelas: <b className="text-gray-600">{selected?.title}</b></p>
+              <p className="text-xs text-gray-400 -mt-1">Kelas: <b className="text-gray-600">{selectedClass?.title}</b></p>
+
+              {/* Modul Target */}
+              {selectedClass && selectedClass.courses.length > 1 && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Modul / Materi Terkait</label>
+                  <select
+                    value={qModal.form.targetCourseId}
+                    onChange={(e) => setQModal((m) => ({ ...m, form: { ...m.form, targetCourseId: e.target.value } }))}
+                    className={inputCls}
+                  >
+                    {selectedClass.courses.map((c) => (
+                      <option key={c.id} value={c.id}>{c.title}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Pertanyaan</label>
                 <textarea value={qModal.form.question} onChange={(e) => setQModal((m) => ({ ...m, form: { ...m.form, question: e.target.value } }))} rows={2} className={inputCls} placeholder="Tulis pertanyaan…" />
@@ -256,3 +302,4 @@ export default function ExamManagement({
 }
 
 const inputCls = "w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0866FF]/30 focus:border-[#0866FF]";
+

@@ -6,7 +6,7 @@ import { getActiveSubscription } from "@/lib/subscription";
 import type { Course, Lesson, Program } from "@/types";
 import {
   ArrowLeft, Lock, PlayCircle, Clock, BookOpen, Crown, Sparkles,
-  ArrowRight, ChevronRight, Layers, CheckCircle2,
+  ArrowRight, ChevronRight, Layers, CheckCircle2, Award, ClipboardCheck,
 } from "lucide-react";
 
 const LEVEL_ORDER = ["Pemula", "Menengah", "Lanjutan"];
@@ -29,6 +29,17 @@ export default async function ProgramCurriculumPage({ params }: { params: Promis
   ]);
 
   const courses = (coursesRaw || []) as Course[];
+  const courseIds = courses.map((c) => c.id);
+
+  const [{ count: examCount }, { data: passedAttempts }] = await Promise.all([
+    supabase.from("ExamQuestion").select("*", { count: "exact", head: true }).in("courseId", courseIds.length > 0 ? courseIds : ["none"]),
+    supabase.from("ExamAttempt").select("id, courseId").eq("userId", session.user.id).in("courseId", courseIds.length > 0 ? courseIds : ["none"]).eq("passed", true).limit(1),
+  ]);
+
+  const hasExam = (examCount ?? 0) > 0;
+  const hasCertificate = !!(passedAttempts && passedAttempts.length > 0);
+  const targetCourse = courses.find((c) => c.id === passedAttempts?.[0]?.courseId) || courses[0];
+
   const lessons = (lessonsRaw || []) as Pick<Lesson, "id" | "courseId" | "durationMin" | "isPreview">[];
   const hasActive = !!activeSub;
 
@@ -171,6 +182,42 @@ export default async function ProgramCurriculumPage({ params }: { params: Promis
           </div>
         ))}
       </div>
+
+      {/* Exam Sertifikasi Kelas (Per Kelas / Program) */}
+      {hasExam && unlocked && targetCourse && (
+        <div className={`flex items-center gap-4 rounded-2xl p-5 border ${hasCertificate ? "bg-purple-50 border-purple-200" : "bg-gradient-to-r from-slate-900 to-slate-800 text-white border-slate-700 shadow-md"}`}>
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${hasCertificate ? "bg-purple-500 text-white" : "bg-[#0866FF] text-white"}`}>
+            {hasCertificate ? <Award className="w-6 h-6" /> : <ClipboardCheck className="w-6 h-6" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            {hasCertificate ? (
+              <>
+                <p className="text-sm font-bold text-purple-900">Selamat! Kamu sudah lulus Ujian Sertifikasi Kelas ini! 🎉</p>
+                <p className="text-xs text-purple-600 mt-0.5">Sertifikat resmi sudah terbit dan tersimpan di profil kamu.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-white">Ujian Sertifikasi Kelas {program.title}</p>
+                <p className="text-xs text-slate-300 mt-0.5">Selesaikan semua modul & pelajaran di atas, lalu ikuti ujian kelulusan untuk klaim sertifikat resmi.</p>
+              </>
+            )}
+          </div>
+          <Link
+            href={hasCertificate ? `/dashboard/sertifikasi/${targetCourse.slug}/sertifikat` : `/dashboard/sertifikasi/${targetCourse.slug}`}
+            className={`text-xs font-bold px-5 py-2.5 rounded-xl transition-all whitespace-nowrap shadow-sm flex items-center gap-1.5 ${
+              hasCertificate
+                ? "bg-purple-600 text-white hover:bg-purple-700"
+                : "bg-[#0866FF] hover:bg-[#0757d4] text-white"
+            }`}
+          >
+            {hasCertificate ? (
+              <> <Award className="w-4 h-4" /> Lihat Sertifikat </>
+            ) : (
+              <> <ClipboardCheck className="w-4 h-4" /> Ambil Ujian Kelas </>
+            )}
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

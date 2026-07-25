@@ -13,16 +13,35 @@ export default async function SertifikasiExamPage({ params }: { params: Promise<
   if (!session) redirect("/login");
   const { slug } = await params;
 
+  // Slug bisa berupa course slug — cari course dulu
   const { data: course } = await supabase.from("Course").select("*").eq("slug", slug).single();
   if (!course) notFound();
   const c = course as Course;
 
+  // Cari semua course IDs yang satu program (kelas) dengan course ini
+  let courseIds = [c.id];
+  let programTitle = c.title;
+
+  if (c.programId) {
+    const [{ data: siblingCourses }, { data: programRaw }] = await Promise.all([
+      supabase.from("Course").select("id").eq("programId", c.programId).eq("published", true),
+      supabase.from("Program").select("title").eq("id", c.programId).single(),
+    ]);
+    if (siblingCourses && siblingCourses.length > 0) {
+      courseIds = siblingCourses.map((sc: any) => sc.id);
+    }
+    if (programRaw) {
+      programTitle = (programRaw as any).title;
+    }
+  }
+
+  // Ambil soal dari SEMUA course di program ini
   const [{ data: questionsRaw }, activeSub] = await Promise.all([
-    supabase.from("ExamQuestion").select("*").eq("courseId", c.id).order("sortOrder", { ascending: true }),
+    supabase.from("ExamQuestion").select("*").in("courseId", courseIds).order("sortOrder", { ascending: true }),
     getActiveSubscription(session.user.id),
   ]);
 
-  // Sertifikasi HANYA untuk pelanggan aktif (termasuk kelas gratis)
+  // Sertifikasi HANYA untuk pelanggan aktif
   if (!activeSub) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
@@ -70,7 +89,7 @@ export default async function SertifikasiExamPage({ params }: { params: Promise<
       <ExamClient
         courseId={c.id}
         courseSlug={c.slug}
-        courseTitle={c.title}
+        courseTitle={programTitle}
         questions={questions}
         passScore={PASS_SCORE}
       />

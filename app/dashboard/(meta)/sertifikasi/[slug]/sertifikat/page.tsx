@@ -16,12 +16,30 @@ export default async function CertificatePage({ params }: { params: Promise<{ sl
   if (!course) notFound();
   const c = course as Course;
 
-  // Ambil percobaan LULUS terbaik (nilai tertinggi)
+  // Cari semua course IDs yang satu program (kelas) dengan course ini
+  let courseIds = [c.id];
+  let programTitle = c.title;
+  let programLevel = c.level;
+
+  if (c.programId) {
+    const [{ data: siblingCourses }, { data: programRaw }] = await Promise.all([
+      supabase.from("Course").select("id").eq("programId", c.programId).eq("published", true),
+      supabase.from("Program").select("title").eq("id", c.programId).single(),
+    ]);
+    if (siblingCourses && siblingCourses.length > 0) {
+      courseIds = siblingCourses.map((sc: any) => sc.id);
+    }
+    if (programRaw) {
+      programTitle = (programRaw as any).title;
+    }
+  }
+
+  // Ambil percobaan LULUS terbaik (nilai tertinggi) dari semua course di program ini
   const { data: attempts } = await supabase
     .from("ExamAttempt")
     .select("*")
     .eq("userId", session.user.id)
-    .eq("courseId", c.id)
+    .in("courseId", courseIds)
     .eq("passed", true)
     .order("score", { ascending: false })
     .order("createdAt", { ascending: true })
@@ -51,9 +69,11 @@ export default async function CertificatePage({ params }: { params: Promise<{ sl
   }
 
   const dateStr = new Date(attempt.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+
+  // Ambil semua lessons dari semua course di program ini untuk daftar kompetensi
   const [settings, { data: lessonsRaw }] = await Promise.all([
     getSiteSettings(),
-    supabase.from("Lesson").select("title, section, sortOrder").eq("courseId", c.id).order("sortOrder", { ascending: true }),
+    supabase.from("Lesson").select("title, section, sortOrder").in("courseId", courseIds).order("sortOrder", { ascending: true }),
   ]);
 
   const lessons = (lessonsRaw || []) as Pick<Lesson, "title" | "section" | "sortOrder">[];
@@ -63,8 +83,8 @@ export default async function CertificatePage({ params }: { params: Promise<{ sl
     <div className="p-4 md:p-6">
       <Certificate
         name={session.user.name ?? "Peserta"}
-        courseTitle={c.title}
-        level={c.level}
+        courseTitle={programTitle}
+        level={programLevel}
         category={c.category}
         score={attempt.score}
         certNumber={attempt.certNumber ?? "-"}

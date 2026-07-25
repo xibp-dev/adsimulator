@@ -66,7 +66,7 @@ export default function LessonVideo({ embedUrl, type, watermark }: LessonVideoPr
         src={embedUrl}
         className="w-full h-full border-none"
         title="Materi pembelajaran"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />
 

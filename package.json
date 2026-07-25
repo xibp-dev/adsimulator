@@ -7,6 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:preview": "npx wrangler pages dev .vercel/output/static",
+    "pages:deploy": "npx wrangler pages deploy .vercel/output/static",
+    "d1:create": "npx wrangler d1 create adsimulator-db",
+    "d1:schema": "npx wrangler d1 execute adsimulator-db --remote --file=./prisma/schema_d1.sql",
+    "d1:seed": "npx wrangler d1 execute adsimulator-db --remote --file=./prisma/seed_d1.sql",
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed"
@@ -16,6 +22,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@opennextjs/cloudflare": "^1.20.2",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.108.2",
     "@types/bcryptjs": "^2.4.6",
@@ -38,6 +45,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -46,6 +54,7 @@
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.86.0"
   }
 }

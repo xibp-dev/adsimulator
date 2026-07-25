@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { getActiveSubscription } from "@/lib/subscription";
 import { getSiteSettings } from "@/lib/siteSettings";
 import { PASS_SCORE } from "@/lib/exam";
-import type { Course } from "@/types";
+import type { Course, Program } from "@/types";
 import {
-  LayoutGrid, Lock, Award, ClipboardCheck, Crown, ArrowRight, CheckCircle2, RotateCcw, Sparkles,
+  LayoutGrid, Lock, Award, ClipboardCheck, Crown, ArrowRight, CheckCircle2, RotateCcw, Sparkles, Layers,
 } from "lucide-react";
 
 export default async function SertifikasiPage() {
@@ -20,28 +20,68 @@ export default async function SertifikasiPage() {
     redirect("/dashboard/pemeliharaan");
   }
 
-  const [{ data: coursesRaw }, { data: questionsRaw }, { data: attemptsRaw }, activeSub] = await Promise.all([
-    supabase.from("Course").select("*").eq("published", true).order("sortOrder", { ascending: true }),
+  const [{ data: programsRaw }, { data: coursesRaw }, { data: questionsRaw }, { data: attemptsRaw }, activeSub] = await Promise.all([
+    supabase.from("Program").select("*").eq("published", true).order("sortOrder", { ascending: true }),
+    supabase.from("Course").select("id, title, programId, thumbnailEmoji, level, slug").eq("published", true).order("sortOrder", { ascending: true }),
     supabase.from("ExamQuestion").select("courseId"),
     supabase.from("ExamAttempt").select("courseId, score, passed").eq("userId", session.user.id),
     getActiveSubscription(session.user.id),
   ]);
 
   const hasActive = !!activeSub;
+  const programs = (programsRaw || []) as Program[];
   const courses = (coursesRaw || []) as Course[];
 
-  const qCount: Record<string, number> = {};
-  (questionsRaw || []).forEach((q: any) => { qCount[q.courseId] = (qCount[q.courseId] || 0) + 1; });
+  // Hitung soal per course
+  const qCountByCourse: Record<string, number> = {};
+  (questionsRaw || []).forEach((q: any) => { qCountByCourse[q.courseId] = (qCountByCourse[q.courseId] || 0) + 1; });
 
-  const best: Record<string, { score: number; passed: boolean }> = {};
+  // Best attempt per course
+  const bestByCourse: Record<string, { score: number; passed: boolean }> = {};
   (attemptsRaw || []).forEach((a: any) => {
-    const cur = best[a.courseId];
-    if (!cur || a.score > cur.score) best[a.courseId] = { score: a.score, passed: a.passed };
+    const cur = bestByCourse[a.courseId];
+    if (!cur || a.score > cur.score) bestByCourse[a.courseId] = { score: a.score, passed: a.passed };
   });
 
-  // Hanya kelas yang punya soal ujian
-  const certCourses = courses.filter((c) => (qCount[c.id] || 0) > 0);
-  const passedCount = certCourses.filter((c) => best[c.id]?.passed).length;
+  // Build per-program data
+  const certPrograms = programs.map((p) => {
+    const progCourses = courses.filter((c) => c.programId === p.id);
+    const courseIds = progCourses.map((c) => c.id);
+    const totalQuestions = courseIds.reduce((s, id) => s + (qCountByCourse[id] || 0), 0);
+
+    // Best attempt across all courses in this program
+    let bestScore: number | null = null;
+    let hasPassed = false;
+    let bestCourseSlug: string | null = null;
+    for (const c of progCourses) {
+      const b = bestByCourse[c.id];
+      if (b) {
+        if (bestScore === null || b.score > bestScore) {
+          bestScore = b.score;
+          bestCourseSlug = c.slug;
+        }
+        if (b.passed) hasPassed = true;
+      }
+    }
+
+    // First course with questions (for exam link)
+    const firstExamCourse = progCourses.find((c) => (qCountByCourse[c.id] || 0) > 0);
+
+    return {
+      id: p.id,
+      title: p.title,
+      thumbnailEmoji: p.thumbnailEmoji,
+      slug: p.slug,
+      courseCount: progCourses.length,
+      totalQuestions,
+      bestScore,
+      hasPassed,
+      bestCourseSlug: bestCourseSlug || firstExamCourse?.slug || progCourses[0]?.slug,
+      firstExamCourseSlug: firstExamCourse?.slug || progCourses[0]?.slug,
+    };
+  }).filter((p) => p.totalQuestions > 0);
+
+  const passedCount = certPrograms.filter((p) => p.hasPassed).length;
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
@@ -55,7 +95,7 @@ export default async function SertifikasiPage() {
           <span className="text-xs text-[#0866FF] font-semibold">Sertifikasi</span>
         </div>
         <h1 className="text-2xl font-bold text-[#1c2b33] tracking-tight flex items-center gap-2">
-          <Award className="w-6 h-6 text-amber-500" /> Sertifikasi
+          <Award className="w-6 h-6 text-amber-500" /> Sertifikasi Kelas
         </h1>
         <p className="text-sm text-gray-400 mt-0.5">
           Uji pemahamanmu per kelas. Nilai di atas {PASS_SCORE} = lulus dan sertifikat terbit otomatis.
@@ -67,7 +107,7 @@ export default async function SertifikasiPage() {
         <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
           <p className="text-sm text-emerald-800 flex-1">
-            <b>Langganan aktif</b> — semua ujian sertifikasi terbuka. {passedCount > 0 && `Kamu sudah lulus ${passedCount} dari ${certCourses.length} sertifikasi.`}
+            <b>Langganan aktif</b> — semua ujian sertifikasi terbuka. {passedCount > 0 && `Kamu sudah lulus ${passedCount} dari ${certPrograms.length} sertifikasi kelas.`}
           </p>
         </div>
       ) : (
@@ -85,26 +125,24 @@ export default async function SertifikasiPage() {
         </div>
       )}
 
-      {/* Grid sertifikasi */}
+      {/* Grid sertifikasi per kelas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {certCourses.map((c) => {
-          const b = best[c.id];
-          const n = qCount[c.id] || 0;
+        {certPrograms.map((p) => {
           return (
-            <div key={c.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col">
+            <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col">
               <div className="flex items-start justify-between mb-3">
-                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl">{c.thumbnailEmoji}</div>
-                {b?.passed ? (
+                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl">{p.thumbnailEmoji}</div>
+                {p.hasPassed ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <Award className="w-3 h-3" /> Lulus · {b.score}
+                    <Award className="w-3 h-3" /> Lulus · {p.bestScore}
                   </span>
                 ) : !hasActive ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gray-900/80 text-white">
                     <Lock className="w-3 h-3" /> Terkunci
                   </span>
-                ) : b ? (
+                ) : p.bestScore !== null ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                    Terakhir: {b.score}
+                    Terakhir: {p.bestScore}
                   </span>
                 ) : (
                   <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#0866FF] border border-blue-100">
@@ -112,26 +150,28 @@ export default async function SertifikasiPage() {
                   </span>
                 )}
               </div>
-              <h3 className="font-bold text-[#1c2b33] leading-snug">{c.title}</h3>
-              <p className="text-xs text-gray-400 mt-1 flex-1">Level {c.level} · {n} soal · lulus &gt; {PASS_SCORE}</p>
+              <h3 className="font-bold text-[#1c2b33] leading-snug">{p.title}</h3>
+              <p className="text-xs text-gray-400 mt-1 flex-1 flex items-center gap-1.5">
+                <Layers className="w-3 h-3" /> {p.courseCount} modul · {p.totalQuestions} soal · lulus &gt; {PASS_SCORE}
+              </p>
 
               <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-50">
                 {!hasActive ? (
                   <Link href="/dashboard/langganan" className="flex-1 inline-flex items-center justify-center gap-1.5 bg-gray-900 hover:bg-black text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-colors">
                     <Crown className="w-3.5 h-3.5" /> Berlangganan
                   </Link>
-                ) : b?.passed ? (
+                ) : p.hasPassed ? (
                   <>
-                    <Link href={`/dashboard/sertifikasi/${c.slug}/sertifikat`} className="flex-1 inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-colors">
+                    <Link href={`/dashboard/sertifikasi/${p.bestCourseSlug}/sertifikat`} className="flex-1 inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-colors">
                       <Award className="w-3.5 h-3.5" /> Sertifikat
                     </Link>
-                    <Link href={`/dashboard/sertifikasi/${c.slug}`} title="Ulangi ujian" className="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-500 hover:text-[#0866FF] hover:border-[#0866FF] p-2.5 rounded-xl transition-colors">
+                    <Link href={`/dashboard/sertifikasi/${p.firstExamCourseSlug}`} title="Ulangi ujian" className="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-500 hover:text-[#0866FF] hover:border-[#0866FF] p-2.5 rounded-xl transition-colors">
                       <RotateCcw className="w-3.5 h-3.5" />
                     </Link>
                   </>
                 ) : (
-                  <Link href={`/dashboard/sertifikasi/${c.slug}`} className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-colors">
-                    <ClipboardCheck className="w-3.5 h-3.5" /> Mulai Ujian
+                  <Link href={`/dashboard/sertifikasi/${p.firstExamCourseSlug}`} className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#0866FF] hover:bg-[#0757d4] text-white text-xs font-bold px-3 py-2.5 rounded-xl transition-colors">
+                    <ClipboardCheck className="w-3.5 h-3.5" /> Mulai Ujian Kelas
                   </Link>
                 )}
               </div>
@@ -140,7 +180,7 @@ export default async function SertifikasiPage() {
         })}
       </div>
 
-      {certCourses.length === 0 && (
+      {certPrograms.length === 0 && (
         <div className="text-center py-16 text-gray-400 text-sm bg-white rounded-2xl border border-gray-100">
           Belum ada ujian sertifikasi tersedia.
         </div>

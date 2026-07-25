@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { randomUUID } from "crypto";
 
 async function requireAdmin() {
   const session = await auth();
@@ -46,33 +45,29 @@ export async function POST(req: NextRequest) {
       "image/vnd.microsoft.icon": "ico",
       "image/svg+xml": "svg",
     };
-    const safeExt = ALLOWED_EXTENSIONS[file.type];
-    if (!safeExt) {
-      return NextResponse.json({ error: "Tipe file tidak didukung" }, { status: 400 });
-    }
-    const fileName = `${randomUUID()}.${safeExt}`;
+    const safeExt = ALLOWED_EXTENSIONS[file.type] || "jpg";
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${safeExt}`;
     const filePath = `settings/${fileName}`;
 
-    // Pastikan bucket site-assets ada, buat jika belum ada
-    const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
-    if (!listError) {
-      const bucketExists = buckets?.some((b) => b.name === "site-assets");
-      if (!bucketExists) {
-        const { error: createError } = await supabaseAdmin.storage.createBucket("site-assets", {
-          public: true,
-        });
-        if (createError) {
-          console.error("Gagal membuat bucket:", createError);
-          return NextResponse.json(
-            { error: `Gagal membuat storage bucket: ${createError.message}` },
-            { status: 500 }
-          );
-        }
-      }
+    // 1. Coba upload ke Cloudflare R2 jika Binding UPLOADS tersedia
+    // @ts-ignore
+    const r2Bucket = process.env.UPLOADS || (globalThis as any).UPLOADS;
+    if (r2Bucket && typeof r2Bucket.put === "function") {
+      await r2Bucket.put(filePath, buffer, {
+        httpMetadata: { contentType: file.type },
+      });
+      const publicUrl = `/api/uploads/${filePath}`;
+      return NextResponse.json({ success: true, url: publicUrl });
     }
 
-    // Upload ke Supabase Storage (bucket: site-assets)
-    const { data, error } = await supabaseAdmin.storage
+    // 2. Fallback ke Supabase Storage jika R2 belum disetup
+    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
+    const bucketExists = buckets?.some((b) => b.name === "site-assets");
+    if (!bucketExists) {
+      await supabaseAdmin.storage.createBucket("site-assets", { public: true });
+    }
+
+    const { error } = await supabaseAdmin.storage
       .from("site-assets")
       .upload(filePath, buffer, {
         contentType: file.type,
@@ -80,11 +75,9 @@ export async function POST(req: NextRequest) {
       });
 
     if (error) {
-      console.error("Supabase Storage Error:", error);
-      return NextResponse.json({ error: `Gagal mengunggah ke storage: ${error.message}` }, { status: 500 });
+      return NextResponse.json({ error: `Gagal mengunggah: ${error.message}` }, { status: 500 });
     }
 
-    // Dapatkan public URL
     const { data: publicUrlData } = supabaseAdmin.storage
       .from("site-assets")
       .getPublicUrl(filePath);
