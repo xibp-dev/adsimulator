@@ -1,15 +1,10 @@
 name = "adsimulator"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
 
-# Cloudflare D1 Database Binding
-[[d1_databases]]
-binding = "DB"
-database_name = "adsimulator-db"
-database_id = "717eb810-5517-466d-a844-0e619643e20b"
+# OpenNext uses .open-next as output
+# pages_build_output_dir is NOT needed for OpenNext
 
-# Cloudflare R2 Storage Binding
-[[r2_buckets]]
-binding = "UPLOADS"
-bucket_name = "adsimulator-uploads"
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
