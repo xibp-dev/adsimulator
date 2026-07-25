@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+
+export const runtime = "edge";
 import { SessionProvider } from "next-auth/react";
 import { getSiteSettings } from "@/lib/siteSettings";
 import { GTMScript, GTMNoScript } from "@/components/GoogleTagManager";
