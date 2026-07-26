@@ -6,14 +6,3 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
-
-# Cloudflare D1 Database Binding
-[[d1_databases]]
-binding = "DB"
-database_name = "adsimulator-db"
-database_id = "717eb810-5517-466d-a844-0e619643e20b"
-
-# Cloudflare R2 Storage Binding
-[[r2_buckets]]
-binding = "UPLOADS"
-bucket_name = "adsimulator-uploads"
